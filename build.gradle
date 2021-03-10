@@ -57,7 +57,7 @@ dependencies {
 test.useTestNG()
 
 distTar {
-    compression = Compression.GZIP
+    compression = Compression.BZIP2
 }
 
 distributions {
