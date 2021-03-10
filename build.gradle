@@ -23,10 +23,6 @@ repositories {
     maven {
         url = uri("https://jitpack.io")
     }
-    maven {
-         name = "GitHubPackages"
-         url = uri("https://maven.pkg.github.com/eb4j/eb4j")
-    }
 }
 
 task ebdumpStartScript(type: CreateStartScripts) {
@@ -51,7 +47,7 @@ applicationDistribution.into("bin") {
 }
 
 dependencies {
-    implementation project(':eb4j-core')
+    implementation 'com.github.eb4j:eb4j:2.0.0'
     implementation 'commons-cli:commons-cli:1.4'
     implementation 'commons-lang:commons-lang:2.6'
     implementation 'org.slf4j:slf4j-simple:1.7.25'
@@ -68,8 +64,8 @@ distributions {
     main {
         distributionBaseName = 'eb4j-tools'
         contents {
-            from '../README.md'
-            from '../LICENSE.txt'
+            from 'README.md'
+            from 'LICENSE.txt'
         }
     }
 }

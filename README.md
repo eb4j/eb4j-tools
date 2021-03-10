@@ -1,57 +1,6 @@
-# EB4j
+# EB4j-tools
 
-[![](https://jitpack.io/v/eb4j/eb4j.svg)](https://jitpack.io/#eb4j/eb4j)
-
-EPWING/Ebook access library and utilities.
-
-
-## Use eb4j-core library for your project
-
-### Gradle
-
-```
-repositories {
-    maven {
-        url "https://jitpack.io"
-    }
-}
-dependencies {
-    implementation 'io.github.eb4j:eb4j:2.0.0'
-}
-```
-
-### Gradle(kts)
-
-```
-repositories {
-    maven {
-        url = uri("https://jitpack.io")
-    }
-}
-dependencies {
-    implementation('io.github.eb4j:eb4j:2.0.0')
-}
-```
-
-### Maven
-
-```
-<repositories>
-    <repository>
-      <id>jitpack.io</id>
-      <url>https://jitpack.io/</url>
-    </repository>
-</repositories>
- <dependencies>
-    <dependency>
-      <groupId>io.github.eb4j</groupId>
-      <artifactId>eb4j</artifactId>
-      <version>2.0.0</version>
-      <type>jar</type>
-    </dependency>
-    ...
-  </dependencies>
-```
+EPWING/Ebook access utilities.
 
 
 ## Build
@@ -72,9 +21,8 @@ C:> gradlew.bat build
 You will find generated archive files at
 
 ```
-eb4j-core/build/libs/eb4j-core-<version>.jar
-eb4j-tools/build/distributions/eb4j-tools-<version>.tgz
-eb4j-tools/build/distributions/eb4j-tools-<version>.zip
+build/distributions/eb4j-tools-<version>.tbz2
+build/distributions/eb4j-tools-<version>.zip
 ```
 
 ## Contribution
@@ -106,14 +54,3 @@ PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License along
 with this library; if not, write to the Free Software Foundation, Inc.,
 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
-## Why forked and welcome contribution
-
-Here is a fork project from http://eb4j.osdn.jp which has discontinued
-its development in 2010.
-
-Here is a new place for eb4j project in order to maintain it by community
-basis, to accept patches and comments, and to improve library.
-
-You are welcome to contribute here by pushing PRs, leaving comments or
-join as development member.
