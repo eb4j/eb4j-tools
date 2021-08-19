@@ -1,32 +1,22 @@
 package io.github.eb4j.tool;
 
 import java.io.File;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
 import java.io.IOException;
-import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.Arrays;
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
-import java.util.StringTokenizer;
+import java.util.concurrent.Callable;
 import java.util.zip.Adler32;
 import java.util.zip.Deflater;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.PosixParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang.ArrayUtils;
 
 import io.github.eb4j.Book;
 import io.github.eb4j.SubBook;
@@ -38,32 +28,26 @@ import io.github.eb4j.io.BookInputStream;
 import io.github.eb4j.io.EBZipInputStream;
 import io.github.eb4j.io.EBZipConstants;
 
+import picocli.CommandLine;
+
 /**
  * 書籍の圧縮/伸張プログラム。
  *
  * @author Hisaya FUKUMOTO
+ * @author Hiroshi Miura
  */
-public final class EBZip {
-
-    /** コピーライト */
-    private static final String COPYRIGHT = "Copyright (c) 2002-2007 by Hisaya FUKUMOTO.\n"
-                                          + "Copyright (c) 2016 Hiroshi Miura";
-    /** E-Mailアドレス */
-    private static final String EMAIL = "miurahr@linux.com";
+public final class EBZip implements Callable<Integer> {
     /** プロブラム名 */
     private static final String PROGRAM = EBZip.class.getName();
 
     /** デフォルト読み込みディレクトリ */
     private static final String DEFAULT_BOOK_DIR = ".";
+
     /** デフォルト出力ディレクトリ */
     private static final String DEFAULT_OUTPUT_DIR = ".";
 
-    /** 上書き禁止モード*/
-    private static final int OVERWRITE_NO = 0;
-    /** 上書き時問合せモード*/
-    private static final int OVERWRITE_QUERY = 1;
-    /** 強制上書きモード*/
-    private static final int OVERWRITE_FORCE = 2;
+    /** 圧縮率表示用フォーマッタ */
+    private static final DecimalFormat FMT = new DecimalFormat("##0.0'%'");
 
     /** 圧縮モード */
     private static final int ACTION_ZIP = 0;
@@ -72,236 +56,118 @@ public final class EBZip {
     /** 情報モード */
     private static final int ACTION_INFO = 2;
 
-    /** 圧縮率表示用フォーマッタ */
-    private static final DecimalFormat FMT = new DecimalFormat("##0.0'%'");
+    /** 上書き方法 */
+    @CommandLine.Option(names = {"-o", "--overwrite"}, negatable = true, description = "Overwrite output files")
+    boolean overwrite;
 
+    /** オリジナルファイル保持フラグ */
+    @CommandLine.Option(names = {"-k", "--keep"}, description = "keep (don't delete) original files")
+    boolean keep;
+
+    /** EBZIP圧縮レベル */
+    @CommandLine.Option(
+            names = {"-l", "--level"},
+            description = "compression level: 0.." + EBZipConstants.EBZIP_MAX_LEVEL,
+            defaultValue = "0") //EBZipConstants.EBZIP_DEFAULT_LEVEL
+    int level;
+
+    /** 出力メッセージ抑止フラグ */
+    @CommandLine.Option(names = {"-q", "--quiet"}, description = "suppress all warings")
+    boolean quiet;
+
+    enum SkipTypes {
+        /** 外字無視フラグ */
+        FONT,
+        /** 音声無視フラグ */
+        SOUND,
+        /** 画像無視フラグ */
+        GRAPHIC,
+        /** 動画無視フラグ */
+        MOVIE,
+    }
+
+    class SkipTypeConverter implements CommandLine.ITypeConverter<SkipTypes> {
+        public SkipTypes convert(String value) {
+            switch (value) {
+                case "font"  : return SkipTypes.FONT;
+                case "sound" : return SkipTypes.SOUND;
+                case "graphic" : return SkipTypes.GRAPHIC;
+                case "movie"    : return SkipTypes.MOVIE;
+                default:
+                    return null;
+            }
+        }
+    }
+
+    @CommandLine.Option(
+            names = {"-s", "--skip-content"},
+            split = ",",
+            converter = SkipTypeConverter.class,
+            description = "skip content; font, graphic, sound or movie")
+    List<SkipTypes> skips;
+
+    /** 出力先ディレクトリ */
+    @CommandLine.Option(names = {"-o", "--output-directory"}, description = "output files under DIRECTORY", defaultValue = DEFAULT_OUTPUT_DIR)
+    String outDir;
+
+    @CommandLine.Option(names = {"-i", "--information"}, description = "list information of compressed files")
+    boolean actionInfo;
+
+    @CommandLine.Option(names = {"-z", "--compress"}, description = "compress files")
+    boolean actionZip;
+
+    @CommandLine.Option(names = {"-u", "--uncompress"}, description = "uncompress files")
+    boolean actionUnzip;
 
     /** 書籍読み込みディレクトリ */
-    private static String bookDir = DEFAULT_BOOK_DIR;
-    /** 出力先ディレクトリ */
-    private static String outDir = DEFAULT_OUTPUT_DIR;
+    @CommandLine.Parameters(description = "book path", defaultValue = DEFAULT_BOOK_DIR)
+    File bookDir;
+
     /** 対象副本のリスト */
-    private static String[] subbooks = null;
-    /** 上書き方法 */
-    private static int overwrite = OVERWRITE_QUERY;
-    /** EBZIP圧縮レベル */
-    private static int level = EBZipConstants.EBZIP_DEFAULT_LEVEL;
-    /** オリジナルファイル保持フラグ */
-    private static boolean keep = false;
-    /** 出力メッセージ抑止フラグ */
-    private static boolean quiet = false;
-    /** 圧縮テストモードフラグ */
-    private static boolean test = false;
-    /** 外字無視フラグ */
-    private static boolean skipFont = false;
-    /** 音声無視フラグ */
-    private static boolean skipSound = false;
-    /** 画像無視フラグ */
-    private static boolean skipGraphic = false;
-    /** 動画無視フラグ */
-    private static boolean skipMovie = false;
-
+    @CommandLine.Option(names = {"-S", "--subbook"}, description = "target subbook")
+    String[] subbooks;
 
     /**
-     * メインメソッド。
+     * Computes a result, or throws an exception if unable to do so.
      *
-     * @param args コマンド行引数
+     * @return computed result
+     * @throws Exception if unable to compute a result
      */
-    public static void main(final String[] args) {
-        Options options = new Options();
-        options.addOption("f", "force-overwrite", false, "force overwrite of output files");
-        options.addOption("n", "no-overwrite", false, "don't overwrite output files");
-        options.addOption("i", "information", false, "list information of compressed files");
-        options.addOption("k", "keep", false, "keep (don't delete) original files");
-        options.addOption("l", "level", true, "compression level; 0.." + EBZipConstants
-                .EBZIP_MAX_LEVEL);
-        options.addOption("o", "output-directory", true, "output files under DIRECTORY");
-        options.addOption("q", "quiet", false, "suppress all warnings");
-        options.addOption("s", "skip-content", true, "skip content; font, graphic, sound or movie");
-        options.addOption("S", "subbook", true, "target subbook");
-        options.addOption("z", "compress", false, "compress files");
-        options.addOption("u", "uncompress", false, "uncompress files");
-        options.addOption("t", "test", false, "only check for input files");
-        options.addOption("h", "help", false, "display this help and exit");
-        options.addOption("v", "version", false, "output version information and exit");
-
-        CommandLineParser parser = new PosixParser();
-        CommandLine cmd = null;
-        try {
-            cmd = parser.parse(options, args);
-        } catch (ParseException e) {
-            System.err.println(PROGRAM + ": " + e.getMessage());
-            System.exit(1);
+    @Override
+    public Integer call() throws Exception {
+        if (skips == null) {
+            skips = Collections.emptyList();
         }
-
-        if (cmd.hasOption("f")) {
-            overwrite = OVERWRITE_FORCE;
-        }
-        if (cmd.hasOption("n")) {
-            overwrite = OVERWRITE_NO;
-        }
-
-        int action = ACTION_ZIP;
-        if (cmd.hasOption("i")) {
-            action = ACTION_INFO;
-        }
-        if (cmd.hasOption("z")) {
-            action = ACTION_ZIP;
-        }
-        if (cmd.hasOption("u")) {
-            action = ACTION_UNZIP;
-        }
-
-        keep = cmd.hasOption("k");
-        quiet = cmd.hasOption("q");
-        test = cmd.hasOption("t");
-
-        if (cmd.hasOption("l")) {
-            String optionValue = cmd.getOptionValue("l");
-            try {
-                EBZip.level = Integer.parseInt(optionValue);
-            } catch (NumberFormatException e) {
-                System.err.println(PROGRAM + ": invalid compression level `" + optionValue + "'");
-                System.exit(1);
-            }
-            if (EBZip.level > EBZipConstants.EBZIP_MAX_LEVEL || EBZip.level < 0) {
-                System.err.println(PROGRAM + ": invalid compression level `" + optionValue + "'");
-                System.exit(1);
-            }
-        }
-        if (cmd.hasOption("o")) {
-            outDir = cmd.getOptionValue("o");
-        }
-
-        if (cmd.hasOption("s")) {
-            String arg = cmd.getOptionValue("s");
-            StringTokenizer st = new StringTokenizer(arg, ",");
-            while (st.hasMoreTokens()) {
-                String skip =
-                    st.nextToken().trim().toLowerCase(Locale.ENGLISH);
-                switch (skip) {
-                    case "font":
-                        skipFont = true;
-                        break;
-                    case "sound":
-                        skipSound = true;
-                        break;
-                    case "graphic":
-                        skipGraphic = true;
-                        break;
-                    case "movie":
-                        skipMovie = true;
-                        break;
-                    default:
-                        System.err.println(PROGRAM + ": invalid content name `" + skip + "'");
-                        System.exit(1);
-                }
-            }
-        }
-
-        ArrayList<String> list = new ArrayList<>(4);
-        if (cmd.hasOption("S")) {
-            String arg = cmd.getOptionValue("S");
-            StringTokenizer st = new StringTokenizer(arg, ",");
-            while (st.hasMoreTokens()) {
-                list.add(st.nextToken().trim().toLowerCase(Locale.ENGLISH));
-            }
-        }
-        if (!list.isEmpty()) {
-            subbooks = list.toArray(new String[list.size()]);
-        }
-
-
-        if (cmd.hasOption("h")) {
-            _usage(options);
-            System.exit(0);
-        }
-        if (cmd.hasOption("v")) {
-            _version();
-            System.exit(0);
-        }
-
-        String[] paths = cmd.getArgs();
-        int len = ArrayUtils.getLength(paths);
-        switch (len) {
-            case 0:
-                break;
-            case 1:
-                bookDir = paths[0];
-                break;
-            default:
-                System.err.println(PROGRAM + ": too many arguments");
-                _usage();
-                System.exit(1);
-        }
-
-        EBZip ebzip = new EBZip();
-        try {
-            ebzip._exec(action);
-        } catch (Exception e) {
-            System.err.println(PROGRAM + ": " + e.getMessage());
-        }
+        exec();
+        return 0;
     }
-
-
-    /**
-     * 使用方法を表示します。
-     *
-     */
-    private static void _usage() {
-        System.out.println("Try `java " + PROGRAM + " --help' for more information");
-    }
-
-    /**
-     * 使用方法を表示します。
-     *
-     * @param options コマンドラインオプション
-     */
-    private static void _usage(final Options options) {
-        HelpFormatter fmt = new HelpFormatter();
-        fmt.printHelp("java " + PROGRAM + " [option...] [book-directory]",
-                      "\nOptions:", options,
-                      "\nReport bugs to <" + EMAIL + ">.", false);
-    }
-
-    /**
-     * バージョンを表示します。
-     *
-     */
-    private static void _version() {
-        Package pkg = EBZip.class.getPackage();
-        System.out.println(PROGRAM + " " + pkg.getImplementationVersion());
-        System.out.println(COPYRIGHT);
-        System.out.println("All right reserved.");
-    }
-
-
-    /**
-     * コンストラクタ。
-     *
-     */
-    private EBZip() {
-        super();
-    }
-
 
     /**
      * コマンドを実行します。
      *
-     * @param action コマンドの動作種別
      * @exception EBException 書籍の初期化中に例外が発生した場合
      */
-    private void _exec(final int action) throws EBException {
+    void exec() throws EBException {
+        int action = ACTION_ZIP;
+        if (actionInfo) {
+            action = ACTION_INFO;
+        }
+        if (actionUnzip) {
+            action = ACTION_UNZIP;
+        }
+        if (actionZip) {
+            action = ACTION_ZIP;
+        }
         Book book = new Book(bookDir);
-        File root = new File(bookDir);
+        File root = bookDir;
         SubBook[] sub = book.getSubBooks();
         EBFile file;
         for (SubBook aSub : sub) {
             if (subbooks != null) {
                 boolean show = false;
                 String dir = aSub.getName().toLowerCase(Locale.ENGLISH);
-                for (int j = 0; j < subbooks.length; j++) {
-                    if (subbooks[j].equals(dir)) {
+                for (String subbook : subbooks) {
+                    if (subbook.equals(dir)) {
                         show = true;
                         break;
                     }
@@ -324,13 +190,13 @@ public final class EBZip {
                 _act(action, file);
                 if (file.getName().equalsIgnoreCase("honmon2")) {
                     // 音声、画像ファイル
-                    if (!skipSound && !file.getName().equalsIgnoreCase("honmon2")) {
+                    if (skips.contains(SkipTypes.SOUND) && !file.getName().equalsIgnoreCase("honmon2")) {
                         file = aSub.getSoundFile();
                         if (file != null) {
                             _act(action, file);
                         }
                     }
-                    if (!skipGraphic) {
+                    if (!skips.contains(SkipTypes.GRAPHIC)) {
                         file = aSub.getGraphicFile();
                         if (file != null && !file.getName().equalsIgnoreCase("honmon2")) {
                             if (action == ACTION_ZIP) {
@@ -342,7 +208,7 @@ public final class EBZip {
                     }
                 }
                 // 外字ファイル
-                if (!skipFont) {
+                if (!skips.contains(SkipTypes.FONT)) {
                     for (int j = 0; j < 4; j++) {
                         ExtFont font = aSub.getFont(j);
                         if (font.hasWideFont()) {
@@ -356,7 +222,7 @@ public final class EBZip {
                     }
                 }
                 // 動画ファイル
-                if (!skipMovie && action != ACTION_INFO) {
+                if (!skips.contains(SkipTypes.MOVIE) && action != ACTION_INFO) {
                     File[] files = aSub.getMovieFileList();
                     if (files != null) {
                         for (File file1 : files) {
@@ -370,7 +236,7 @@ public final class EBZip {
             try {
                 file = new EBFile(root, "language", EBFormat.FORMAT_PLAIN);
                 _act(action, file);
-            } catch (EBException e) {
+            } catch (EBException ignored) {
             }
             file = new EBFile(root, "catalog", EBFormat.FORMAT_PLAIN);
             if (action == ACTION_ZIP) {
@@ -394,7 +260,7 @@ public final class EBZip {
      * @param action アクション
      * @param file ファイル
      */
-    private void _act(final int action, final EBFile file) {
+    private void _act(int action, final EBFile file) {
         switch (action) {
             case ACTION_ZIP:
                 _zip(file);
@@ -434,9 +300,7 @@ public final class EBZip {
      * @param file ファイル
      */
     private void _zip(final EBFile file) throws SecurityException {
-        if (!test) {
-            _mkdir(file);
-        }
+        _mkdir(file);
 
         File f = _getOutFile(file, ".ebz");
         if (!quiet) {
@@ -453,7 +317,7 @@ public final class EBZip {
             return;
         }
 
-        if (!test && !_isOverwrite(f)) {
+        if (f.exists() && !overwrite) {
             return;
         }
 
@@ -463,16 +327,14 @@ public final class EBZip {
             long fileSize = bis.getFileSize();
             int indexSize = calcIndexSize(fileSize);
             int totalSlice = (int)((fileSize + sliceSize - 1) / sliceSize);
-            long indexLength = (totalSlice + 1) * indexSize;
+            long indexLength = (long) (totalSlice + 1) * indexSize;
             byte[] in = new byte[sliceSize];
             byte[] out = new byte[sliceSize + 1024];
             long slicePos = EBZipConstants.EBZIP_HEADER_SIZE + indexLength;
 
             // ヘッダとインデックスのダミーデータを書き込む
-            if (!test) {
-                channel = new FileOutputStream(f).getChannel();
-                fillZeroHeader(channel, sliceSize, slicePos);
-            }
+            channel = new FileOutputStream(f).getChannel();
+            fillZeroHeader(channel, sliceSize, slicePos);
 
             long inTotalLength = 0;
             long outTotalLength = 0;
@@ -491,11 +353,9 @@ public final class EBZip {
                     toBigEndian(out, indexSize, nextPos, indexSize);
                 }
                 // インデックス情報の書き込み
-                if (!test) {
-                    assert channel != null;
-                    channel.position(EBZipConstants.EBZIP_HEADER_SIZE + i * indexSize);
-                    channel.write(ByteBuffer.wrap(out, 0, indexSize * 2));
-                }
+                assert channel != null;
+                channel.position(EBZipConstants.EBZIP_HEADER_SIZE + (long) i * indexSize);
+                channel.write(ByteBuffer.wrap(out, 0, indexSize * 2));
 
                 inTotalLength += inLen;
                 outTotalLength += outLen + indexSize;
@@ -521,12 +381,12 @@ public final class EBZip {
             if (channel != null) {
                 try {
                     channel.close();
-                } catch (IOException e) {
+                } catch (IOException ignored) {
                 }
             }
         }
         // オリジナルファイルの削除
-        if (!test && !keep) {
+        if (!keep) {
             _delete(file.getFile());
         }
         if (!quiet) {
@@ -618,11 +478,9 @@ public final class EBZip {
            outLen = sliceSize;
         }
         // 圧縮したスライスデータの書き込み
-        if (!test) {
-            // ファイルの末尾に追加
-            channel.position(channel.size());
-            channel.write(ByteBuffer.wrap(out, 0, outLen));
-        }
+        // ファイルの末尾に追加
+        channel.position(channel.size());
+        channel.write(ByteBuffer.wrap(out, 0, outLen));
         return outLen;
     }
 
@@ -660,10 +518,8 @@ public final class EBZip {
         out[21] = (byte)(mtime & 0xff);
 
         // ヘッダ情報の書き込み
-        if (!test) {
-            channel.position(0);
-            channel.write(ByteBuffer.wrap(out, 0, EBZipConstants.EBZIP_HEADER_SIZE));
-        }
+        channel.position(0);
+        channel.write(ByteBuffer.wrap(out, 0, EBZipConstants.EBZIP_HEADER_SIZE));
     }
 
     private void printZipResult(final long inTotalLength, final long outTotalLength,
@@ -692,9 +548,7 @@ public final class EBZip {
             return;
         }
 
-        if (!test) {
-            _mkdir(file);
-        }
+        _mkdir(file);
 
         String suffix = null;
         if (file.getFormat() != EBFormat.FORMAT_EBZIP) {
@@ -714,8 +568,7 @@ public final class EBZip {
             }
             return;
         }
-
-        if (!test && !_isOverwrite(f)) {
+        if (f.exists() && !overwrite) {
             return;
         }
 
@@ -724,9 +577,7 @@ public final class EBZip {
         try {
             bis = file.getInputStream();
             byte[] b = new byte[bis.getSliceSize()];
-            if (!test) {
-                channel = new FileOutputStream(f).getChannel();
-            }
+            channel = new FileOutputStream(f).getChannel();
             long totalLength = 0;
             int totalSlice = (int)((bis.getFileSize()
                                     + bis.getSliceSize() - 1)
@@ -760,9 +611,7 @@ public final class EBZip {
                     crc32.update(b, 0, n);
                 }
                 // データの書き込み
-                if (!test) {
-                    channel.write(ByteBuffer.wrap(b, 0, n));
-                }
+                channel.write(ByteBuffer.wrap(b, 0, n));
                 totalLength += n;
 
                 // 進捗の表示
@@ -788,13 +637,7 @@ public final class EBZip {
                     return;
                 }
             }
-        } catch (EBException e) {
-            System.err.println(PROGRAM + ": " + e.getMessage());
-        } catch (FileNotFoundException e) {
-            System.err.println(PROGRAM + ": " + e.getMessage());
-        } catch (IOException e) {
-            System.err.println(PROGRAM + ": " + e.getMessage());
-        } catch (SecurityException e) {
+        } catch (EBException | IOException | SecurityException e) {
             System.err.println(PROGRAM + ": " + e.getMessage());
         } finally {
             if (bis != null) {
@@ -803,12 +646,12 @@ public final class EBZip {
             if (channel != null) {
                 try {
                     channel.close();
-                } catch (IOException e) {
+                } catch (IOException ignored) {
                 }
             }
         }
         // オリジナルファイルの削除
-        if (!test && !keep) {
+        if (!keep) {
             _delete(file.getFile());
         }
         if (!quiet) {
@@ -824,9 +667,7 @@ public final class EBZip {
     private void _info(final EBFile file) {
         // ファイル名の出力
         System.out.println("==> " + file.getPath() + " <==");
-        BookInputStream bis = null;
-        try {
-            bis = file.getInputStream();
+        try (BookInputStream bis = file.getInputStream()) {
             // ファイルサイズ、圧縮率の出力
             StringBuilder buf = new StringBuilder();
             String text = null;
@@ -836,7 +677,7 @@ public final class EBZip {
                     buf.append(" bytes (not compressed)");
                     break;
                 case FORMAT_EBZIP:
-                    text = "ebzip level " + ((EBZipInputStream)bis).getLevel() + " compression)";
+                    text = "ebzip level " + ((EBZipInputStream) bis).getLevel() + " compression)";
                     break;
                 case FORMAT_SEBXA:
                     text = "S-EBXA compression)";
@@ -847,12 +688,12 @@ public final class EBZip {
             if (text != null) {
                 long size = bis.getFileSize();
                 long real = bis.getRealFileSize();
-                buf.append(Long.toString(size)).append(" -> ");
-                buf.append(Long.toString(real)).append(" bytes (");
+                buf.append(size).append(" -> ");
+                buf.append(real).append(" bytes (");
                 if (size == 0) {
                     System.out.print("empty original file, ");
                 } else {
-                    double rate = (double)real / (double)size * 100.0;
+                    double rate = (double) real / (double) size * 100.0;
                     buf.append(FMT.format(rate));
                     buf.append(", ");
                 }
@@ -863,10 +704,6 @@ public final class EBZip {
         } catch (EBException e) {
             System.err.println(PROGRAM + ": " + e.getMessage());
             System.out.println("");
-        } finally {
-            if (bis != null) {
-                bis.close();
-            }
         }
     }
 
@@ -915,20 +752,14 @@ public final class EBZip {
                 outOff += 16;
             }
             buf.force();
-        } catch (FileNotFoundException e) {
-            System.err.println(PROGRAM + ": " + e.getMessage());
-            err = true;
-        } catch (IOException e) {
-            System.err.println(PROGRAM + ": " + e.getMessage());
-            err = true;
-        } catch (SecurityException e) {
+        } catch (IOException | SecurityException e) {
             System.err.println(PROGRAM + ": " + e.getMessage());
             err = true;
         } finally {
             if (channel != null) {
                 try {
                     channel.close();
-                } catch (IOException e) {
+                } catch (IOException ignored) {
                 }
             }
         }
@@ -962,7 +793,7 @@ public final class EBZip {
         String bookDirFile;
         String inFile;
         try {
-            bookDirFile = new File(EBZip.bookDir).getCanonicalPath();
+            bookDirFile = bookDir.getCanonicalPath();
             inFile = file.getCanonicalPath();
         } catch (IOException e) {
             throw new RuntimeException("can't get canonical path", e);
@@ -1027,9 +858,7 @@ public final class EBZip {
      * @param file2 出力ファイル
      */
     private void _copy(final File file1, final File file2) {
-        if (!test) {
-            _mkdir(file2);
-        }
+        _mkdir(file2);
         if (!quiet) {
             // ファイル名の出力
             System.out.println("==> copy " + file1.getPath() + " <==");
@@ -1044,47 +873,20 @@ public final class EBZip {
             return;
         }
 
-        if (test) {
-            if (!quiet) {
-                System.out.println("");
-            }
+        if (file2.exists() && !overwrite) {
             return;
         }
 
-        if (!_isOverwrite(file2)) {
-            return;
-        }
-
-        FileChannel in = null;
-        FileChannel out = null;
-        try {
-            in = new FileInputStream(file1).getChannel();
-            out = new FileOutputStream(file2).getChannel();
-            in.transferTo(0, (int)in.size(), out);
+        try (FileChannel in = new FileInputStream(file1).getChannel();
+             FileChannel out = new FileOutputStream(file2).getChannel()) {
+            in.transferTo(0, (int) in.size(), out);
             // 結果の表示
             if (!quiet) {
                 System.out.println("completed (" + in.size()
-                                   + " / " + out.size() + " bytes)");
+                        + " / " + out.size() + " bytes)");
             }
-        } catch (FileNotFoundException e) {
+        } catch (IOException | SecurityException e) {
             System.err.println(PROGRAM + ": " + e.getMessage());
-        } catch (IOException e) {
-            System.err.println(PROGRAM + ": " + e.getMessage());
-        } catch (SecurityException e) {
-            System.err.println(PROGRAM + ": " + e.getMessage());
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                }
-            }
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                }
-            }
         }
         // オリジナルファイルの削除
         if (!keep) {
@@ -1112,48 +914,6 @@ public final class EBZip {
         }
     }
 
-    /**
-     * 上書きの確認を行います。
-     *
-     * @param file ファイル
-     * @return 上書きを行う場合はtrue、そうでない場合はfalse
-     */
-    private boolean _isOverwrite(final File file) {
-        if (!file.exists()) {
-            return true;
-        }
-        if (overwrite == OVERWRITE_NO) {
-            if (!quiet) {
-                System.err.println("already exists, skip the file");
-                System.err.println("");
-            }
-            return false;
-        } else if (overwrite == OVERWRITE_QUERY) {
-            while (true) {
-                System.err.println("");
-                System.err.println("the file already exists: " + file.getPath());
-                System.err.print("do you wish to overwrite (y or n)? ");
-                BufferedReader br = null;
-                try {
-                    br = new BufferedReader(new InputStreamReader(System.in,
-                            Charset.defaultCharset()));
-                    String line = br.readLine();
-                    if (line != null) {
-                        line = line.trim();
-                        if (line.equalsIgnoreCase("y")) {
-                            break;
-                        } else if (line.equalsIgnoreCase("n")) {
-                            System.err.println("");
-                            return false;
-                        }
-                    }
-                } catch (IOException e) {
-                }
-            }
-            System.err.println("");
-        }
-        return true;
-    }
 }
 
 // end of EBZip.java

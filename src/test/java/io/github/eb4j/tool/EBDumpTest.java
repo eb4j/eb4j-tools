@@ -1,6 +1,5 @@
 package io.github.eb4j.tool;
 
-import io.github.eb4j.EBException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -39,14 +38,13 @@ public class EBDumpTest {
     @Test
     @SuppressWarnings("checkstyle:methodname")
     public void testEBDump_dump() throws Exception {
-        String bookPath = new File(this.getClass().getResource("/data/epwing").getFile())
-                .getAbsolutePath();
-        EBDump ebDump = new EBDump(bookPath);
-        try {
-            ebDump.dump(0, 0, 64);
-        } catch (EBException ebe) {
-            fail(ebe.getMessage());
-        }
+        File bookPath = new File(this.getClass().getResource("/data/epwing").getFile()).getAbsoluteFile();
+        EBDump ebDump = new EBDump();
+        ebDump.subindex = 0;
+        ebDump.pos = 0L;
+        ebDump.size = 64;
+        ebDump.path = bookPath;
+        ebDump.dump();
         String expected =
                 "00001:000  00 03 20 00 00 00 00 00  00 00 00 00 00 00 00 00  ................\n"
                 + "00001:010  00 00 00 00 00 02 00 00  00 01 01 00 00 00 00 00  ................\n"

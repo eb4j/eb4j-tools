@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
+import java.util.Collections;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -42,8 +43,8 @@ public class EBZipTest {
     @Test
     @SuppressWarnings("checkstyle:methodname")
     public void testEBZip_info() throws Exception {
-        String bookPath = new File(this.getClass().getResource("/data/epwing-zipped").getFile())
-                .getAbsolutePath();
+        File bookPath = new File(this.getClass().getResource("/data/epwing-zipped").getFile())
+                .getAbsoluteFile();
         String expected = "==> " + bookPath + "/test/DATA/HONMON.ebz <==\n"
                 + "10240 -> 2337 bytes (22.8%, ebzip level 0 compression)\n"
                 + "\n"
@@ -52,8 +53,12 @@ public class EBZipTest {
                 + "\n"
                 + "==> " + bookPath + "/CATALOGS <==\n"
                 + "2048 bytes (not compressed)\n\n";
-        String[] args = {"-i", bookPath};
-        EBZip.main(args);
+        EBZip ebZip = new EBZip();
+        ebZip.bookDir = bookPath;
+        ebZip.actionInfo = true;
+        ebZip.quiet = false;
+        ebZip.skips = Collections.emptyList();
+        ebZip.exec();
         assertEquals(outContent.toString("UTF-8"), expected);
     }
 
@@ -65,8 +70,8 @@ public class EBZipTest {
     @Test
     @SuppressWarnings("checkstyle:methodname")
     public void testEBZip_compress() throws Exception {
-        String bookPath = new File(this.getClass().getResource("/data/epwing").getFile())
-                .getAbsolutePath();
+        File bookPath = new File(this.getClass().getResource("/data/epwing").getFile())
+                .getAbsoluteFile();
         String outPath = Files.createTempDirectory("testEBZip_compress").toFile().getAbsolutePath();
         String expected = "==> compress " + bookPath + "/test/DATA/HONMON <==\n"
                 + "output to " + outPath + "/test/DATA/HONMON.ebz\n"
@@ -79,13 +84,25 @@ public class EBZipTest {
                 + "==> copy " + bookPath + "/CATALOGS <==\n"
                 + "output to " + outPath + "/CATALOGS\n"
                 + "completed (2048 / 2048 bytes)\n\n";
-        String[] args = {"-z", "-k", "-o", outPath, bookPath};
-        EBZip.main(args);
+        EBZip ebZip = new EBZip();
+        ebZip.bookDir = bookPath;
+        ebZip.outDir = outPath;
+        ebZip.keep = true;
+        ebZip.skips = Collections.emptyList();
+        ebZip.actionZip = true;
+        ebZip.quiet = false;
+        ebZip.exec();
         assertEquals(outContent.toString("UTF-8"), expected);
         // Check whether go back as same as original
-        String checkPath = Files.createTempDirectory("testEBZip_compress_check").toFile().getAbsolutePath();
-        String[] args2 = {"-u", "-k", "-o", checkPath, outPath};
-        EBZip.main(args2);
+        File checkPath = Files.createTempDirectory("testEBZip_compress_check").toFile().getAbsoluteFile();
+        ebZip = new EBZip();
+        ebZip.actionUnzip = true;
+        ebZip.keep = true;
+        ebZip.quiet = false;
+        ebZip.bookDir = new File(outPath);
+        ebZip.outDir = checkPath.toString();
+        ebZip.skips = Collections.emptyList();
+        ebZip.exec();
         assertTrue(FileUtils2.contentEquals(new File(checkPath + "/test/DATA/HONMON"),
                 new File(bookPath + "/test/DATA/HONMON")));
     }
@@ -97,8 +114,8 @@ public class EBZipTest {
     @Test
     @SuppressWarnings("checkstyle:methodname")
     public void testEBZip_uncompress() throws Exception {
-        String bookPath = new File(this.getClass().getResource("/data/epwing-zipped").getFile())
-                .getAbsolutePath();
+        File bookPath = new File(this.getClass().getResource("/data/epwing-zipped").getFile())
+                .getAbsoluteFile();
         String outPath = Files.createTempDirectory("testEBZip_uncompress").toFile().getAbsolutePath();
         String expectedPath = new File(this.getClass().getResource("/data/epwing").getFile())
                 .getAbsolutePath();
@@ -113,8 +130,14 @@ public class EBZipTest {
                 + "==> copy " + bookPath + "/CATALOGS <==\n"
                 + "output to " + outPath + "/CATALOGS\n"
                 + "completed (2048 / 2048 bytes)\n\n";
-        String[] args = {"-u", "-k", "-o", outPath, bookPath};
-        EBZip.main(args);
+        EBZip ebZip = new EBZip();
+        ebZip.actionUnzip = true;
+        ebZip.keep = true;
+        ebZip.quiet = false;
+        ebZip.outDir = outPath;
+        ebZip.bookDir = bookPath;
+        ebZip.skips = Collections.emptyList();
+        ebZip.exec();
         assertEquals(outContent.toString("UTF-8"), expected);
         assertTrue(FileUtils2.contentEquals(new File(outPath + "/test/DATA/HONMON"),
                 new File(expectedPath + "/test/DATA/HONMON")));

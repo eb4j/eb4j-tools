@@ -36,8 +36,7 @@ public class EBInfoTest {
      */
     @Test
     public void testEBinfo() throws Exception {
-        String bookPath = new File(this.getClass().getResource("/data/epwing").getFile())
-                .getAbsolutePath();
+        File bookPath = new File(this.getClass().getResource("/data/epwing").getFile()).getAbsoluteFile();
         String expected = "disc type: EPWING V1\n"
                 + "character code: JIS X 0208\n"
                 + "the number of subbooks: 2\n"
@@ -56,8 +55,10 @@ public class EBInfoTest {
                 + "  font sizes:\n"
                 + "  narrow font characters:\n"
                 + "  wide font characters:\n";
-        String[] args = {"-m", bookPath};
-        EBInfo.main(args);
+        EBInfo ebInfo = new EBInfo();
+        ebInfo.path = bookPath;
+        ebInfo.multi = true;
+        ebInfo.show();
         assertEquals(outContent.toString("UTF-8"), expected);
     }
 

@@ -1,12 +1,6 @@
 package io.github.eb4j.tool;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.PosixParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang.ArrayUtils;
+import picocli.CommandLine;
 
 import io.github.eb4j.Book;
 import io.github.eb4j.SubBook;
@@ -15,16 +9,21 @@ import io.github.eb4j.io.BookInputStream;
 import io.github.eb4j.util.ByteUtil;
 import io.github.eb4j.util.HexUtil;
 
+import java.io.File;
+import java.util.concurrent.Callable;
+
 /**
  * 書籍データダンププログラム。
  *
  * @author Hisaya FUKUMOTO
+ * @author Hiroshi Miura
  */
-public class EBDump {
+@CommandLine.Command(name="ebdump")
+public class EBDump implements Callable<Integer> {
 
     /** コピーライト */
     private static final String COPYRIGHT = "Copyright (c) 2002-2007 by Hisaya FUKUMOTO.\n"
-                                          + "Copyright (c) 2016 Hiroshi Miura";
+                                          + "Copyright (c) 2016,2021 Hiroshi Miura";
     /** E-Mailアドレス */
     private static final String EMAIL = "miurahr@linux.com";
     /** プロブラム名 */
@@ -33,198 +32,67 @@ public class EBDump {
     /** デフォルト読み込みディレクトリ */
     private static final String DEFAULT_BOOK_DIR = ".";
 
-    /** 書籍 */
-    private Book _book = null;
 
+    @CommandLine.Option(names = {"-s", "--subbook"}, description = "subbook index number", defaultValue = "0")
+    int subindex;
 
-    /**
-     * メインメソッド。
-     *
-     * @param args コマンド行引数
-     */
-    public static void main(final String[] args) {
-        Options options = new Options();
-        options.addOption("s", "subbook", true, "subbook index number");
-        options.addOption("p", "page", true, "page number (HEX)");
-        options.addOption("o", "offset", true, "offset number (HEX)");
-        options.addOption("P", "position", true, "position (HEX)");
-        options.addOption("d", "dump", true, "dump size (HEX)");
-        options.addOption("h", "help", false, "display this help and exit");
-        options.addOption("v", "version", false, "output version information and exit");
+    @CommandLine.Option(names = {"-p", "--page"}, description = "page number (HEX)", converter = HexNumberConverter.class, defaultValue = "1")
+    Long page;
 
-        CommandLineParser parser = new PosixParser();
-        CommandLine cmd = null;
-        try {
-            cmd = parser.parse(options, args);
-        } catch (ParseException e) {
-            System.err.println(PROGRAM + ": " + e.getMessage());
-            System.exit(1);
-        }
+    @CommandLine.Option(names = {"-o", "--offset"}, description = "offset number (HEX)", converter = HexNumberConverter.class, defaultValue = "0")
+    Integer off;
 
-        int subindex = 0;
-        long page = 1L;
-        int off = 0;
-        long pos = -1L;
-        int size = 0;
-        if (cmd.hasOption("s")) {
-            String arg = cmd.getOptionValue("s");
-            try {
-                subindex = Integer.parseInt(arg);
-            } catch (NumberFormatException e) {
-                System.err.println(PROGRAM + ": invalid subbook index `" + arg + "'");
-                System.exit(1);
-            }
-            if (subindex <= 0) {
-                System.err.println(PROGRAM + ": invalid subbook index `" + arg + "'");
-                System.exit(1);
-            }
-            subindex--;
-        }
-        if (cmd.hasOption("p")) {
-            String arg = cmd.getOptionValue("p");
-            try {
-                page = Long.parseLong(arg, 16);
-            } catch (NumberFormatException e) {
-                System.err.println(PROGRAM + ": invalid page number `" + arg + "'");
-                System.exit(1);
-            }
-            if (page <= 0) {
-                System.err.println(PROGRAM + ": invalid page number `" + arg + "'");
-                System.exit(1);
-            }
-        }
-        if (cmd.hasOption("o")) {
-            String arg = cmd.getOptionValue("o");
-            try {
-                off = Integer.parseInt(arg, 16);
-            } catch (NumberFormatException e) {
-                System.err.println(PROGRAM + ": invalid offset number `" + arg + "'");
-                System.exit(1);
-            }
-            if (off < 0) {
-                System.err.println(PROGRAM + ": invalid offset number `" + arg + "'");
-                System.exit(1);
-            }
-        }
-        if (cmd.hasOption("P")) {
-            String arg = cmd.getOptionValue("P");
-            try {
-                pos = Long.parseLong(arg, 16);
-            } catch (NumberFormatException e) {
-                System.err.println(PROGRAM + ": invalid position `" + arg + "'");
-                System.exit(1);
-            }
-            if (pos < 0) {
-                System.err.println(PROGRAM + ": invalid position `" + arg + "'");
-                System.exit(1);
-            }
-        }
-        if (cmd.hasOption("d")) {
-            String arg = cmd.getOptionValue("d");
-            try {
-                size = Integer.parseInt(arg, 16);
-            } catch (NumberFormatException e) {
-                System.err.println(PROGRAM + ": invalid dump size `" + arg + "'");
-                System.exit(1);
-            }
-            if (size <= 0) {
-                System.err.println(PROGRAM + ": invalid dump size `" + arg + "'");
-                System.exit(1);
-            }
-        }
-        if (cmd.hasOption("h")) {
-            _usage(options);
-            System.exit(0);
-        }
-        if (cmd.hasOption("v")) {
-            _version();
-            System.exit(0);
-        }
+    @CommandLine.Option(names = {"-P", "--position"}, description = "position (HEX)", converter = HexNumberConverter.class, defaultValue = "0")
+    Long pos;
 
-        String path = null;
-        String[] paths = cmd.getArgs();
-        int len = ArrayUtils.getLength(paths);
-        switch (len) {
-            case 0:
-                path = DEFAULT_BOOK_DIR;
-                break;
-            case 1:
-                path = paths[0];
-                break;
-            default:
-                System.err.println(PROGRAM + ": too many arguments");
-                _usage();
-                System.exit(1);
-        }
+    @CommandLine.Option(names = {"-d", "--dump"}, description = "dump size (HEX)", converter = HexNumberConverter.class, defaultValue = "0")
+    Integer size;
 
-        try {
-            EBDump ebdump = new EBDump(path);
-            if (pos < 0) {
-                pos = BookInputStream.getPosition(page, off);
-            }
-            ebdump.dump(subindex, pos, size);
-        } catch (EBException e) {
-            System.err.println(PROGRAM + ": " + e.getMessage());
-        }
-    }
-
+    @CommandLine.Parameters(description = "book path", defaultValue = DEFAULT_BOOK_DIR)
+    File path;
 
     /**
-     * 使用方法を表示します。
+     * Computes a result, or throws an exception if unable to do so.
      *
+     * @return computed result
+     * @throws Exception if unable to compute a result
      */
-    private static void _usage() {
-        System.out.println("Try `java " + PROGRAM + " --help' for more information");
+    @Override
+    public Integer call() throws Exception {
+        if (pos < 0) {
+            pos = BookInputStream.getPosition(page, off);
+        }
+        dump();
+        return 0;
     }
 
-    /**
-     * 使用方法を表示します。
-     *
-     * @param options コマンドラインオプション
-     */
-    private static void _usage(final Options options) {
-        HelpFormatter fmt = new HelpFormatter();
-        fmt.printHelp("java " + PROGRAM + " [option...] [book-directory]",
-                      "\nOptions:", options,
-                      "\nReport bugs to <" + EMAIL + ">.", false);
+    public static void main(String... args) {
+        System.exit(new CommandLine(new EBDump()).execute(args));
     }
 
-    /**
-     * バージョンを表示します。
-     *
-     */
-    private static void _version() {
-        Package pkg = EBDump.class.getPackage();
-        System.out.println(PROGRAM + " " + pkg.getImplementationVersion());
-        System.out.println(COPYRIGHT);
-        System.out.println("All right reserved.");
+    class HexNumberConverter implements CommandLine.ITypeConverter<Long> {
+        /**
+         * Converts the specified command line argument value to some domain object.
+         *
+         * @param value the command line argument String value
+         * @return the resulting domain object
+         */
+        @Override
+        public Long convert(String value) {
+            return Long.parseLong(value, 16);
+        }
     }
-
-
-    /**
-     * コンストラクタ。
-     *
-     * @param path 書籍のパス
-     * @exception EBException 書籍の初期化中に例外が発生した場合
-     */
-    public EBDump(final String path) throws EBException {
-        super();
-        _book = new Book(path);
-    }
-
 
     /**
      * 書籍のデータを出力します。
      *
-     * @param subindex 副本のインデックス
-     * @param pos データ位置
-     * @param size ダンプサイズ
      * @exception EBException ファイル読み込み中にエラーが発生した場合
      */
-    public void dump(final int subindex, final long pos, final int size) throws EBException {
+    protected void dump() throws EBException {
         int dumpsize;
+        Book book = new Book(path);
 
-        SubBook sub = _book.getSubBook(subindex);
+        SubBook sub = book.getSubBook(subindex);
         if (sub == null) {
             return;
         }
