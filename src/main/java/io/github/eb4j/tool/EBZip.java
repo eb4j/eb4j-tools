@@ -83,15 +83,14 @@ public final class EBZip implements Callable<Integer> {
     /**
      * 上書き方法
      */
-    @CommandLine.Option(names = {"--overwrite"}, description = "Overwrite output files", defaultValue = "false")
-    boolean overwrite;
+    @CommandLine.Option(names = {"--overwrite"}, description = "Overwrite output files")
+    boolean overwrite = false;
 
     /**
      * オリジナルファイル保持フラグ
      */
-    @CommandLine.Option(names = {"-k", "--keep"}, description = "keep (don't delete) original files",
-            defaultValue = "false")
-    boolean keep;
+    @CommandLine.Option(names = {"-k", "--keep"}, description = "keep (don't delete) original files")
+    boolean keep = false;
 
     /**
      * EBZIP圧縮レベル
@@ -105,8 +104,8 @@ public final class EBZip implements Callable<Integer> {
     /**
      * 出力メッセージ抑止フラグ
      */
-    @CommandLine.Option(names = {"-q", "--quiet"}, description = "suppress all warings", defaultValue = "false")
-    boolean quiet;
+    @CommandLine.Option(names = {"-q", "--quiet"}, description = "suppress all warings")
+    boolean quiet = false;
 
     /**
      * Types for skip option flags.
@@ -160,18 +159,17 @@ public final class EBZip implements Callable<Integer> {
     /**
      * 出力先ディレクトリ
      */
-    @CommandLine.Option(names = {"-o", "--output-directory"}, description = "output files under DIRECTORY",
-            defaultValue = DEFAULT_OUTPUT_DIR)
-    String outDir;
+    @CommandLine.Option(names = {"-o", "--output-directory"}, description = "output files under DIRECTORY")
+    String outDir = DEFAULT_OUTPUT_DIR;
 
     @CommandLine.Option(names = {"-i", "--information"}, description = "list information of compressed files")
-    boolean actionInfo;
+    boolean actionInfo = false;
 
     @CommandLine.Option(names = {"-z", "--compress"}, description = "compress files")
-    boolean actionZip;
+    boolean actionZip = false;
 
     @CommandLine.Option(names = {"-u", "--uncompress"}, description = "uncompress files")
-    boolean actionUnzip;
+    boolean actionUnzip = false;
 
     /**
      * 書籍読み込みディレクトリ

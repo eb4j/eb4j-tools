@@ -28,8 +28,8 @@ public final class EBInfo implements Callable<Integer> {
     private static final String DEFAULT_BOOK_DIR = ".";
 
     @picocli.CommandLine.Option(names = {"-m", "--multi-search"},
-            description = "also output multi-search information", defaultValue = "false")
-    boolean multi;
+            description = "also output multi-search information")
+    boolean multi = false;
 
     @picocli.CommandLine.Parameters(description = "book path", defaultValue = DEFAULT_BOOK_DIR)
     File path;

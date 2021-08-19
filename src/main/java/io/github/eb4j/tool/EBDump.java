@@ -42,16 +42,16 @@ public class EBDump implements Callable<Integer> {
     Long page;
 
     @CommandLine.Option(names = {"-o", "--offset"}, description = "offset number (HEX)",
-            converter = HexNumberConverter.class, defaultValue = "0")
-    Integer off;
+            converter = HexNumberConverter.class)
+    int off = 0;
 
     @CommandLine.Option(names = {"-P", "--position"}, description = "position (HEX)",
-            converter = HexNumberConverter.class, defaultValue = "0")
-    Long pos;
+            converter = HexNumberConverter.class)
+    long pos = 0L;
 
     @CommandLine.Option(names = {"-d", "--dump"}, description = "dump size (HEX)",
-            converter = HexNumberConverter.class, defaultValue = "0")
-    Integer size;
+            converter = HexNumberConverter.class)
+    int size = 0;
 
     @CommandLine.Parameters(description = "book path", defaultValue = DEFAULT_BOOK_DIR)
     File path;
