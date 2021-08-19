@@ -37,62 +37,104 @@ import picocli.CommandLine;
  * @author Hiroshi Miura
  */
 public final class EBZip implements Callable<Integer> {
-    /** プロブラム名 */
+    /**
+     * プロブラム名
+     */
     private static final String PROGRAM = EBZip.class.getName();
 
-    /** デフォルト読み込みディレクトリ */
+    /**
+     * デフォルト読み込みディレクトリ
+     */
     private static final String DEFAULT_BOOK_DIR = ".";
 
-    /** デフォルト出力ディレクトリ */
+    /**
+     * デフォルト出力ディレクトリ
+     */
     private static final String DEFAULT_OUTPUT_DIR = ".";
 
-    /** 圧縮率表示用フォーマッタ */
+    /**
+     * 圧縮率表示用フォーマッタ
+     */
     private static final DecimalFormat FMT = new DecimalFormat("##0.0'%'");
 
-    /** 圧縮モード */
+    /**
+     * 圧縮モード
+     */
     private static final int ACTION_ZIP = 0;
-    /** 解凍モード */
+    /**
+     * 解凍モード
+     */
     private static final int ACTION_UNZIP = 1;
-    /** 情報モード */
+    /**
+     * 情報モード
+     */
     private static final int ACTION_INFO = 2;
 
-    /** 上書き方法 */
-    @CommandLine.Option(names = {"-o", "--overwrite"}, negatable = true, description = "Overwrite output files")
+    /**
+     * 上書き方法
+     */
+    @CommandLine.Option(names = {"-o", "--overwrite"}, negatable = true, description = "Overwrite output files",
+            defaultValue = "false")
     boolean overwrite;
 
-    /** オリジナルファイル保持フラグ */
-    @CommandLine.Option(names = {"-k", "--keep"}, description = "keep (don't delete) original files")
+    /**
+     * オリジナルファイル保持フラグ
+     */
+    @CommandLine.Option(names = {"-k", "--keep"}, description = "keep (don't delete) original files",
+            defaultValue = "false")
     boolean keep;
 
-    /** EBZIP圧縮レベル */
+    /**
+     * EBZIP圧縮レベル
+     */
     @CommandLine.Option(
             names = {"-l", "--level"},
             description = "compression level: 0.." + EBZipConstants.EBZIP_MAX_LEVEL,
             defaultValue = "0") //EBZipConstants.EBZIP_DEFAULT_LEVEL
-    int level;
+            int level;
 
-    /** 出力メッセージ抑止フラグ */
-    @CommandLine.Option(names = {"-q", "--quiet"}, description = "suppress all warings")
+    /**
+     * 出力メッセージ抑止フラグ
+     */
+    @CommandLine.Option(names = {"-q", "--quiet"}, description = "suppress all warings", defaultValue = "false")
     boolean quiet;
 
+    /**
+     * Types for skip option flags.
+     */
     enum SkipTypes {
-        /** 外字無視フラグ */
+        /**
+         * 外字無視フラグ
+         */
         FONT,
-        /** 音声無視フラグ */
+        /**
+         * 音声無視フラグ
+         */
         SOUND,
-        /** 画像無視フラグ */
+        /**
+         * 画像無視フラグ
+         */
         GRAPHIC,
-        /** 動画無視フラグ */
+        /**
+         * 動画無視フラグ
+         */
         MOVIE,
     }
 
+    /**
+     * Parse skip parameter.
+     */
     class SkipTypeConverter implements CommandLine.ITypeConverter<SkipTypes> {
-        public SkipTypes convert(String value) {
+        public SkipTypes convert(final String value) {
             switch (value) {
-                case "font"  : return SkipTypes.FONT;
-                case "sound" : return SkipTypes.SOUND;
-                case "graphic" : return SkipTypes.GRAPHIC;
-                case "movie"    : return SkipTypes.MOVIE;
+                case "font":
+                    return SkipTypes.FONT;
+                case "sound":
+                    return SkipTypes.SOUND;
+                case "graphic":
+                    return SkipTypes.GRAPHIC;
+                case "movie":
+                    return SkipTypes.MOVIE;
                 default:
                     return null;
             }
@@ -106,8 +148,11 @@ public final class EBZip implements Callable<Integer> {
             description = "skip content; font, graphic, sound or movie")
     List<SkipTypes> skips;
 
-    /** 出力先ディレクトリ */
-    @CommandLine.Option(names = {"-o", "--output-directory"}, description = "output files under DIRECTORY", defaultValue = DEFAULT_OUTPUT_DIR)
+    /**
+     * 出力先ディレクトリ
+     */
+    @CommandLine.Option(names = {"-o", "--output-directory"}, description = "output files under DIRECTORY",
+            defaultValue = DEFAULT_OUTPUT_DIR)
     String outDir;
 
     @CommandLine.Option(names = {"-i", "--information"}, description = "list information of compressed files")
@@ -119,11 +164,15 @@ public final class EBZip implements Callable<Integer> {
     @CommandLine.Option(names = {"-u", "--uncompress"}, description = "uncompress files")
     boolean actionUnzip;
 
-    /** 書籍読み込みディレクトリ */
+    /**
+     * 書籍読み込みディレクトリ
+     */
     @CommandLine.Parameters(description = "book path", defaultValue = DEFAULT_BOOK_DIR)
     File bookDir;
 
-    /** 対象副本のリスト */
+    /**
+     * 対象副本のリスト
+     */
     @CommandLine.Option(names = {"-S", "--subbook"}, description = "target subbook")
     String[] subbooks;
 
@@ -145,7 +194,7 @@ public final class EBZip implements Callable<Integer> {
     /**
      * コマンドを実行します。
      *
-     * @exception EBException 書籍の初期化中に例外が発生した場合
+     * @throws EBException 書籍の初期化中に例外が発生した場合
      */
     void exec() throws EBException {
         int action = ACTION_ZIP;
@@ -258,9 +307,9 @@ public final class EBZip implements Callable<Integer> {
      * 指定されたアクションを実行します。
      *
      * @param action アクション
-     * @param file ファイル
+     * @param file   ファイル
      */
-    private void _act(int action, final EBFile file) {
+    private void _act(final int action, final EBFile file) {
         switch (action) {
             case ACTION_ZIP:
                 _zip(file);
@@ -278,24 +327,24 @@ public final class EBZip implements Callable<Integer> {
     /**
      * 指定されたファイルを圧縮します。
      * Original File:
-     *   +-----------------+-----------------+-...-+-------+
-     *   |     slice 1     |     slice 2     |     |slice N| [EOF]
-     *   |                 |                 |     |       |
-     *   +-----------------+-----------------+-...-+-------+
-     *        slice size        slice size            odds
-     *   <-------------------- file size ------------------>
-     *
+     * +-----------------+-----------------+-...-+-------+
+     * |     slice 1     |     slice 2     |     |slice N| [EOF]
+     * |                 |                 |     |       |
+     * +-----------------+-----------------+-...-+-------+
+     * slice size        slice size            odds
+     * <-------------------- file size ------------------>
+     * <p>
      * Compressed file:
-     *   +------+---------+...+---------+---------+----------+...+-
-     *   |Header|index for|   |index for|index for|compressed|   |
-     *   |      | slice 1 |   | slice N |   EOF   |  slice 1 |   |
-     *   +------+---------+...+---------+---------+----------+...+-
-     *             index         index     index
-     *             size          size      size
-     *          <---------  index length --------->
-     *
-     *     total_slices = N = (file_size + slice_size - 1) / slice_size
-     *     index_length = (N + 1) * index_size
+     * +------+---------+...+---------+---------+----------+...+-
+     * |Header|index for|   |index for|index for|compressed|   |
+     * |      | slice 1 |   | slice N |   EOF   |  slice 1 |   |
+     * +------+---------+...+---------+---------+----------+...+-
+     * index         index     index
+     * size          size      size
+     * <---------  index length --------->
+     * <p>
+     * total_slices = N = (file_size + slice_size - 1) / slice_size
+     * index_length = (N + 1) * index_size
      *
      * @param file ファイル
      */
@@ -326,7 +375,7 @@ public final class EBZip implements Callable<Integer> {
             int sliceSize = BookInputStream.PAGE_SIZE << level;
             long fileSize = bis.getFileSize();
             int indexSize = calcIndexSize(fileSize);
-            int totalSlice = (int)((fileSize + sliceSize - 1) / sliceSize);
+            int totalSlice = (int) ((fileSize + sliceSize - 1) / sliceSize);
             long indexLength = (long) (totalSlice + 1) * indexSize;
             byte[] in = new byte[sliceSize];
             byte[] out = new byte[sliceSize + 1024];
@@ -362,11 +411,11 @@ public final class EBZip implements Callable<Integer> {
                 slicePos = nextPos;
 
                 // 進捗の表示
-                if (!quiet && (i%interval) + 1 == interval) {
-                    double rate = (double)(i + 1) / (double)totalSlice * 100.0;
+                if (!quiet && (i % interval) + 1 == interval) {
+                    double rate = (double) (i + 1) / (double) totalSlice * 100.0;
                     System.out.println(FMT.format(rate) + " done ("
-                                       + inTotalLength + " / "
-                                       + fileSize + " bytes)");
+                            + inTotalLength + " / "
+                            + fileSize + " bytes)");
                 }
             }
             def.end();
@@ -397,17 +446,17 @@ public final class EBZip implements Callable<Integer> {
     private void toBigEndian(final byte[] out, final int off, final long val, final int len) {
         int shift = 0;
         for (int i = len; i > 0; i--) {
-            out[off + i - 1] = (byte)((val >>> shift) & 0xff);
+            out[off + i - 1] = (byte) ((val >>> shift) & 0xff);
             shift += 8;
         }
     }
 
     private int calcIndexSize(final long fileSize) {
-        if (fileSize < (1L<<16)) {
+        if (fileSize < (1L << 16)) {
             return 2;
-        } else if (fileSize < (1L<<24)) {
+        } else if (fileSize < (1L << 24)) {
             return 3;
-        } else if (fileSize < (1L<<32)) {
+        } else if (fileSize < (1L << 32)) {
             return 4;
         }
         return 5;
@@ -417,13 +466,13 @@ public final class EBZip implements Callable<Integer> {
     private void fillZeroHeader(final FileChannel channel, final int sliceSize, final long off)
             throws IOException {
         byte[] out = new byte[sliceSize];
-        Arrays.fill(out, 0, out.length, (byte)0);
+        Arrays.fill(out, 0, out.length, (byte) 0);
         long i;
         for (i = off; i >= sliceSize; i = i - sliceSize) {
             channel.write(ByteBuffer.wrap(out, 0, sliceSize));
         }
         if (i > 0) {
-            channel.write(ByteBuffer.wrap(out, 0, (int)i));
+            channel.write(ByteBuffer.wrap(out, 0, (int) i));
         }
     }
 
@@ -433,7 +482,7 @@ public final class EBZip implements Callable<Integer> {
         bis.seek(inTotalLength);
         int inLen = bis.read(in, 0, in.length);
         if (inLen < 0) {
-           System.err.println(PROGRAM
+            System.err.println(PROGRAM
                     + ": failed to read the file ("
                     + file.getPath() + ")");
             return -1;
@@ -441,19 +490,19 @@ public final class EBZip implements Callable<Integer> {
             System.err.println(PROGRAM + ": unexpected EOF ("
                     + file.getPath() + ")");
             return -1;
-       } else if (inLen != in.length) {
+        } else if (inLen != in.length) {
             long fileSize = bis.getFileSize();
             if (inTotalLength + inLen != fileSize) {
                 System.err.println(PROGRAM + ": unexpected EOF ("
                         + file.getPath() + ")");
                 return -1;
             }
-       }
+        }
         crc32.update(in, 0, inLen);
 
         // 最終スライスでスライスサイズに満たない場合は0で埋める
-       if (inLen < sliceSize) {
-            Arrays.fill(in, inLen, in.length, (byte)0);
+        if (inLen < sliceSize) {
+            Arrays.fill(in, inLen, in.length, (byte) 0);
             inLen = sliceSize;
         }
 
@@ -470,12 +519,12 @@ public final class EBZip implements Callable<Integer> {
         int outLen = 0;
         while (!def.needsInput()) {
             int n = def.deflate(out, outLen, out.length - outLen, Deflater.SYNC_FLUSH);
-           outLen += n;
+            outLen += n;
         }
         // 圧縮スライスがオリジナルより大きい場合はオリジナルを書き込む
         if (outLen >= sliceSize) {
             System.arraycopy(in, 0, out, 0, sliceSize);
-           outLen = sliceSize;
+            outLen = sliceSize;
         }
         // 圧縮したスライスデータの書き込み
         // ファイルの末尾に追加
@@ -487,35 +536,35 @@ public final class EBZip implements Callable<Integer> {
     private void outputHeader(final FileChannel channel, final long fileSize, final Adler32 crc32)
             throws IOException {
         byte[] out = new byte[EBZipConstants.EBZIP_HEADER_SIZE];
-         // ヘッダ情報の作成
-        out[0] = (byte)'E';
-        out[1] = (byte)'B';
-        out[2] = (byte)'Z';
-        out[3] = (byte)'i';
-        out[4] = (byte)'p';
-        if (fileSize < (1L<<32)) {
-            out[5] = (byte)((1 << 4) | (level & 0x0f));
+        // ヘッダ情報の作成
+        out[0] = (byte) 'E';
+        out[1] = (byte) 'B';
+        out[2] = (byte) 'Z';
+        out[3] = (byte) 'i';
+        out[4] = (byte) 'p';
+        if (fileSize < (1L << 32)) {
+            out[5] = (byte) ((1 << 4) | (level & 0x0f));
         } else {
-            out[5] = (byte)((2 << 4) | (level & 0x0f));
+            out[5] = (byte) ((2 << 4) | (level & 0x0f));
         }
-        out[6] = (byte)0;
-        out[7] = (byte)0;
-        out[8] = (byte)0;
-        out[9] = (byte)((fileSize >>> 32) & 0xff);
-        out[10] = (byte)((fileSize >>> 24) & 0xff);
-        out[11] = (byte)((fileSize >>> 16) & 0xff);
-        out[12] = (byte)((fileSize >>> 8) & 0xff);
-        out[13] = (byte)(fileSize & 0xff);
+        out[6] = (byte) 0;
+        out[7] = (byte) 0;
+        out[8] = (byte) 0;
+        out[9] = (byte) ((fileSize >>> 32) & 0xff);
+        out[10] = (byte) ((fileSize >>> 24) & 0xff);
+        out[11] = (byte) ((fileSize >>> 16) & 0xff);
+        out[12] = (byte) ((fileSize >>> 8) & 0xff);
+        out[13] = (byte) (fileSize & 0xff);
         long crc = crc32.getValue();
-        out[14] = (byte)((crc >>> 24) & 0xff);
-        out[15] = (byte)((crc >>> 16) & 0xff);
-        out[16] = (byte)((crc >>> 8) & 0xff);
-        out[17] = (byte)(crc & 0xff);
+        out[14] = (byte) ((crc >>> 24) & 0xff);
+        out[15] = (byte) ((crc >>> 16) & 0xff);
+        out[16] = (byte) ((crc >>> 8) & 0xff);
+        out[17] = (byte) (crc & 0xff);
         long mtime = System.currentTimeMillis();
-        out[18] = (byte)((mtime >>> 24) & 0xff);
-        out[19] = (byte)((mtime >>> 16) & 0xff);
-        out[20] = (byte)((mtime >>> 8) & 0xff);
-        out[21] = (byte)(mtime & 0xff);
+        out[18] = (byte) ((mtime >>> 24) & 0xff);
+        out[19] = (byte) ((mtime >>> 16) & 0xff);
+        out[20] = (byte) ((mtime >>> 8) & 0xff);
+        out[21] = (byte) (mtime & 0xff);
 
         // ヘッダ情報の書き込み
         channel.position(0);
@@ -579,31 +628,31 @@ public final class EBZip implements Callable<Integer> {
             byte[] b = new byte[bis.getSliceSize()];
             channel = new FileOutputStream(f).getChannel();
             long totalLength = 0;
-            int totalSlice = (int)((bis.getFileSize()
-                                    + bis.getSliceSize() - 1)
-                                   / bis.getSliceSize());
+            int totalSlice = (int) ((bis.getFileSize()
+                    + bis.getSliceSize() - 1)
+                    / bis.getSliceSize());
             int interval = 1024;
             if (((totalSlice + 999) / 1000) > interval) {
                 interval = (totalSlice + 999) / 1000;
             }
             Adler32 crc32 = new Adler32();
-            for (int i=0; i<totalSlice; i++) {
+            for (int i = 0; i < totalSlice; i++) {
                 // データの読み込み
                 bis.seek(totalLength);
                 int n = bis.read(b, 0, b.length);
                 if (n < 0) {
                     System.err.println(PROGRAM
-                                       + ": failed to read the file ("
-                                       + f.getPath() + ")");
+                            + ": failed to read the file ("
+                            + f.getPath() + ")");
                     return;
                 } else if (n == 0) {
                     System.err.println(PROGRAM + ": unexpected EOF ("
-                                       + f.getPath() + ")");
+                            + f.getPath() + ")");
                     return;
                 } else if (n != b.length
-                           && totalLength + n != bis.getFileSize()) {
+                        && totalLength + n != bis.getFileSize()) {
                     System.err.println(PROGRAM + ": unexpected EOF ("
-                                       + f.getPath() + ")");
+                            + f.getPath() + ")");
                     return;
                 }
                 // CRCの更新
@@ -615,24 +664,24 @@ public final class EBZip implements Callable<Integer> {
                 totalLength += n;
 
                 // 進捗の表示
-                if (!quiet && (i%interval) + 1 == interval) {
-                    double rate = (double)(i + 1) / (double)totalSlice * 100.0;
+                if (!quiet && (i % interval) + 1 == interval) {
+                    double rate = (double) (i + 1) / (double) totalSlice * 100.0;
                     System.out.println(FMT.format(rate) + " done ("
-                                       + totalLength + " / "
-                                       + bis.getFileSize() + " bytes)");
+                            + totalLength + " / "
+                            + bis.getFileSize() + " bytes)");
                 }
             }
             // 結果の表示
             if (!quiet) {
                 System.out.println("completed (" + bis.getFileSize()
-                                   + " / " + bis.getFileSize() + " bytes)");
+                        + " / " + bis.getFileSize() + " bytes)");
                 System.out.println(bis.getRealFileSize() + " -> "
-                                   + totalLength + " bytes");
+                        + totalLength + " bytes");
             }
 
             // CRCの確認
             if (bis instanceof EBZipInputStream) {
-                if (crc32.getValue() != ((EBZipInputStream)bis).getCRC()) {
+                if (crc32.getValue() != ((EBZipInputStream) bis).getCRC()) {
                     System.err.println(PROGRAM + ": CRC error (" + f.getPath() + ")");
                     return;
                 }
@@ -724,30 +773,30 @@ public final class EBZip implements Callable<Integer> {
 
             // インデックスページをメモリにマッピング
             MappedByteBuffer buf = channel.map(FileChannel.MapMode.READ_WRITE,
-                                               0, BookInputStream.PAGE_SIZE);
+                    0, BookInputStream.PAGE_SIZE);
 
             // 0x12/0x22のインデックスの取り除き
             int indexCount = buf.get(1) & 0xff;
             int removeCount = 0;
             int inOff = 16;
             int outOff = 16;
-            for (int i=0; i<indexCount; i++) {
+            for (int i = 0; i < indexCount; i++) {
                 int index = buf.get(inOff) & 0xff;
                 if (index == 0x21 || index == 0x22) {
                     removeCount++;
                 } else {
                     if (inOff != outOff) {
-                        for (int j=0; j<16; j++) {
-                            buf.put(outOff+j, buf.get(inOff+j));
+                        for (int j = 0; j < 16; j++) {
+                            buf.put(outOff + j, buf.get(inOff + j));
                         }
                     }
                     outOff += 16;
                 }
                 inOff += 16;
             }
-            for (int i=0; i<removeCount; i++) {
-                for (int j=0; j<16; j++) {
-                    buf.put(outOff+j, (byte)0);
+            for (int i = 0; i < removeCount; i++) {
+                for (int j = 0; j < 16; j++) {
+                    buf.put(outOff + j, (byte) 0);
                 }
                 outOff += 16;
             }
@@ -774,7 +823,7 @@ public final class EBZip implements Callable<Integer> {
     /**
      * 指定ファイルに対する出力ファイルを返します。
      *
-     * @param file ファイル
+     * @param file   ファイル
      * @param suffix 拡張子
      * @return 出力ファイル
      */
@@ -785,7 +834,7 @@ public final class EBZip implements Callable<Integer> {
     /**
      * 指定ファイルに対する出力ファイルを返します。
      *
-     * @param file ファイル
+     * @param file   ファイル
      * @param suffix 拡張子
      * @return 出力ファイル
      */
@@ -801,11 +850,11 @@ public final class EBZip implements Callable<Integer> {
 
         String fname = inFile.substring(bookDirFile.length());
         if (fname.length() > 4) {
-            String s = fname.substring(fname.length()-4);
+            String s = fname.substring(fname.length() - 4);
             if (s.equalsIgnoreCase(".ebz")) {
-                fname = fname.substring(0, fname.length()-4);
+                fname = fname.substring(0, fname.length() - 4);
             } else if (s.equalsIgnoreCase(".org")) {
-                fname = fname.substring(0, fname.length()-4);
+                fname = fname.substring(0, fname.length() - 4);
             }
         }
         if (suffix != null) {
@@ -906,8 +955,8 @@ public final class EBZip implements Callable<Integer> {
         try {
             if (!file.delete()) {
                 System.err.println(PROGRAM
-                                   + ": failed to delete the file ("
-                                   + file.getPath() + ")");
+                        + ": failed to delete the file ("
+                        + file.getPath() + ")");
             }
         } catch (SecurityException e) {
             System.err.println(PROGRAM + ": " + e.getMessage());

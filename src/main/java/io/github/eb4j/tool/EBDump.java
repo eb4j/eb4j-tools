@@ -18,34 +18,46 @@ import java.util.concurrent.Callable;
  * @author Hisaya FUKUMOTO
  * @author Hiroshi Miura
  */
-@CommandLine.Command(name="ebdump")
+@CommandLine.Command(name = "ebdump")
 public class EBDump implements Callable<Integer> {
 
-    /** コピーライト */
+    /**
+     * コピーライト
+     */
     private static final String COPYRIGHT = "Copyright (c) 2002-2007 by Hisaya FUKUMOTO.\n"
-                                          + "Copyright (c) 2016,2021 Hiroshi Miura";
-    /** E-Mailアドレス */
+            + "Copyright (c) 2016,2021 Hiroshi Miura";
+    /**
+     * E-Mailアドレス
+     */
     private static final String EMAIL = "miurahr@linux.com";
-    /** プロブラム名 */
+    /**
+     * プロブラム名
+     */
     private static final String PROGRAM = EBDump.class.getName();
 
-    /** デフォルト読み込みディレクトリ */
+    /**
+     * デフォルト読み込みディレクトリ
+     */
     private static final String DEFAULT_BOOK_DIR = ".";
 
 
     @CommandLine.Option(names = {"-s", "--subbook"}, description = "subbook index number", defaultValue = "0")
     int subindex;
 
-    @CommandLine.Option(names = {"-p", "--page"}, description = "page number (HEX)", converter = HexNumberConverter.class, defaultValue = "1")
+    @CommandLine.Option(names = {"-p", "--page"}, description = "page number (HEX)",
+            converter = HexNumberConverter.class, defaultValue = "1")
     Long page;
 
-    @CommandLine.Option(names = {"-o", "--offset"}, description = "offset number (HEX)", converter = HexNumberConverter.class, defaultValue = "0")
+    @CommandLine.Option(names = {"-o", "--offset"}, description = "offset number (HEX)",
+            converter = HexNumberConverter.class, defaultValue = "0")
     Integer off;
 
-    @CommandLine.Option(names = {"-P", "--position"}, description = "position (HEX)", converter = HexNumberConverter.class, defaultValue = "0")
+    @CommandLine.Option(names = {"-P", "--position"}, description = "position (HEX)",
+            converter = HexNumberConverter.class, defaultValue = "0")
     Long pos;
 
-    @CommandLine.Option(names = {"-d", "--dump"}, description = "dump size (HEX)", converter = HexNumberConverter.class, defaultValue = "0")
+    @CommandLine.Option(names = {"-d", "--dump"}, description = "dump size (HEX)",
+            converter = HexNumberConverter.class, defaultValue = "0")
     Integer size;
 
     @CommandLine.Parameters(description = "book path", defaultValue = DEFAULT_BOOK_DIR)
@@ -86,7 +98,7 @@ public class EBDump implements Callable<Integer> {
     /**
      * 書籍のデータを出力します。
      *
-     * @exception EBException ファイル読み込み中にエラーが発生した場合
+     * @throws EBException ファイル読み込み中にエラーが発生した場合
      */
     protected void dump() throws EBException {
         int dumpsize;
@@ -124,42 +136,42 @@ public class EBDump implements Callable<Integer> {
         long i = 0L;
         int j, k;
         int offset, high, low;
-        for (i=start; i<end; i+=16) {
+        for (i = start; i < end; i += 16) {
             if (pos + idx >= page * BookInputStream.PAGE_SIZE) {
                 page++;
             }
             buf.append(_toHexString(page)).append(':');
-            offset = (int)(i%BookInputStream.PAGE_SIZE);
+            offset = (int) (i % BookInputStream.PAGE_SIZE);
             buf.append(_toHexString(offset)).append(' ');
             k = 0;
-            for (j=0; j<16; j++) {
+            for (j = 0; j < 16; j++) {
                 if (j == 8) {
                     buf.append(' ');
                 }
                 buf.append(' ');
-                if (i+j >= pos && i+j < pos2) {
-                    buf.append(_toHexString(b[idx+k]));
+                if (i + j >= pos && i + j < pos2) {
+                    buf.append(_toHexString(b[idx + k]));
                     k++;
                 } else {
                     buf.append("  ");
                 }
             }
             buf.append("  ");
-            for (j=0; j<16; j+=2) {
-                if (i+j >= pos && i+j < pos2) {
+            for (j = 0; j < 16; j += 2) {
+                if (i + j >= pos && i + j < pos2) {
                     high = b[idx++] & 0xff;
-                    if (i+j+1 >= pos && i+j+1 < pos2) {
+                    if (i + j + 1 >= pos && i + j + 1 < pos2) {
                         low = b[idx++] & 0xff;
                         if (high > 0x20 && high < 0x7f
-                            && low > 0x20 && low < 0x7f) {
+                                && low > 0x20 && low < 0x7f) {
                             // JIS X 0208
-                            buf.append(ByteUtil.jisx0208ToString(b, idx-2, 2));
+                            buf.append(ByteUtil.jisx0208ToString(b, idx - 2, 2));
                         } else if (high > 0x20 && high < 0x7f
-                                   && low > 0xa0 && low < 0xff) {
+                                && low > 0xa0 && low < 0xff) {
                             // GB 2312
-                            buf.append(ByteUtil.gb2312ToString(b, idx-2, 2));
+                            buf.append(ByteUtil.gb2312ToString(b, idx - 2, 2));
                         } else if (high > 0xa0 && high < 0xff
-                                   && low > 0x20 && low < 0x7f) {
+                                && low > 0x20 && low < 0x7f) {
                             // 外字
                             buf.append("??");
                         } else {
@@ -170,7 +182,7 @@ public class EBDump implements Callable<Integer> {
                     }
                 } else {
                     buf.append(' ');
-                    if (i+j+1 >= pos && i+j+1 < pos2) {
+                    if (i + j + 1 >= pos && i + j + 1 < pos2) {
                         idx++;
                         buf.append('.');
                     } else {
