@@ -42,6 +42,7 @@ task ebinfoStartScript(type: CreateStartScripts) {
 
 applicationDistribution.into("bin") {
     duplicatesStrategy= DuplicatesStrategy.EXCLUDE
+    from(ebzipStartScript)
     from(ebdumpStartScript)
     from(ebinfoStartScript)
     fileMode = 0755
@@ -50,22 +51,24 @@ applicationDistribution.into("bin") {
 dependencies {
     implementation 'io.github.eb4j:eb4j:2.1.10'
     implementation 'info.picocli:picocli:4.6.1'
+    annotationProcessor 'info.picocli:picocli-codegen:4.6.1'
     testImplementation 'commons-io:commons-io:2.7'
     testImplementation 'org.testng:testng:7.4.0'
 }
 test.useTestNG()
+
+compileJava {
+    options.compilerArgs += ["-Aproject=${project.group}/${project.name}"]
+}
 
 distTar {
     compression = Compression.BZIP2
 }
 
 distributions {
-    main {
-        distributionBaseName = 'eb4j-tools'
-        contents {
-            from 'README.md'
-            from 'LICENSE.txt'
-        }
+    main.contents {
+        from('README.md')
+        from('LICENSE.txt')
     }
 }
 
