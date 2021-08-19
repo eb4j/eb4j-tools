@@ -78,10 +78,17 @@ public class EBDump implements Callable<Integer> {
         return 0;
     }
 
-    public static void main(String... args) {
+    /**
+     * Main function for EBDump command.
+     * @param args
+     */
+    public static void main(final String... args) {
         System.exit(new CommandLine(new EBDump()).execute(args));
     }
 
+    /**
+     * Parser for hex values.
+     */
     class HexNumberConverter implements CommandLine.ITypeConverter<Long> {
         /**
          * Converts the specified command line argument value to some domain object.
@@ -90,7 +97,7 @@ public class EBDump implements Callable<Integer> {
          * @return the resulting domain object
          */
         @Override
-        public Long convert(String value) {
+        public Long convert(final String value) {
             return Long.parseLong(value, 16);
         }
     }
