@@ -49,6 +49,10 @@ public final class EBInfo implements Callable<Integer> {
         return 0;
     }
 
+    /**
+     * Main function for EBInfo commmand.
+     * @param args
+     */
     public static void main(final String... args) {
         System.exit(new CommandLine(new EBInfo()).execute(args));
     }

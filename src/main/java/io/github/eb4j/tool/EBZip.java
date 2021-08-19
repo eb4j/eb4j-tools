@@ -192,6 +192,15 @@ public final class EBZip implements Callable<Integer> {
     }
 
     /**
+     * Main function for EBZip command.
+     * @param args
+     */
+    public static void main(final String... args) {
+        System.exit(new CommandLine(new EBZip()).execute(args));
+    }
+
+
+    /**
      * コマンドを実行します。
      *
      * @throws EBException 書籍の初期化中に例外が発生した場合
