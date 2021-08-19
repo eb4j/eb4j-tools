@@ -19,32 +19,13 @@ repositories {
     mavenCentral()
 }
 
-task ebzipStartScript(type: CreateStartScripts) {
-    mainClassName = 'io.github.eb4j.tool.EBZip'
-    applicationName = 'ebzip'
-    classpath = startScripts.classpath
-    outputDir = startScripts.outputDir
-}
-
-task ebdumpStartScript(type: CreateStartScripts) {
-    mainClassName = 'io.github.eb4j.tool.EBDump'
-    applicationName = 'ebdump'
-    classpath = startScripts.classpath
-    outputDir = startScripts.outputDir
-}
-
-task ebinfoStartScript(type: CreateStartScripts) {
-    mainClassName = 'io.github.eb4j.tool.EBInfo'
-    applicationName = 'ebinfo'
-    classpath = startScripts.classpath
-    outputDir = startScripts.outputDir
+application {
+    applicationName = "eb"
+    mainClassName("io.github.eb4j.tool.Main")
 }
 
 applicationDistribution.into("bin") {
     duplicatesStrategy= DuplicatesStrategy.EXCLUDE
-    from(ebzipStartScript)
-    from(ebdumpStartScript)
-    from(ebinfoStartScript)
     fileMode = 0755
 }
 

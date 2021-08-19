@@ -18,15 +18,8 @@ import java.util.concurrent.Callable;
  * @author Hisaya FUKUMOTO
  * @author Hiroshi Miura
  */
-@CommandLine.Command(name = "ebdump", mixinStandardHelpOptions = true,
-description = "Dump EPWING ebook data",
-version = {"EBDump",
-        "Version " + EBDump.VERSION,
-        "Copyright (c) 2002-2007 by Hisaya FUKUMOTO.",
-        "Copyright (c) 2016,2021 Hiroshi Miura"})
+@CommandLine.Command(name = "dump", mixinStandardHelpOptions = true, description = "Dump EPWING ebook data")
 public class EBDump implements Callable<Integer> {
-
-    static final String VERSION = "2.0.0";
 
     /**
      * デフォルト読み込みディレクトリ
@@ -82,7 +75,8 @@ public class EBDump implements Callable<Integer> {
     /**
      * Parser for hex values.
      */
-    class HexNumberConverter implements CommandLine.ITypeConverter<Long> {
+    static class HexNumberConverter implements CommandLine.ITypeConverter<Long> {
+
         /**
          * Converts the specified command line argument value to some domain object.
          *
