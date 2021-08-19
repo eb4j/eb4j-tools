@@ -16,12 +16,7 @@ import java.util.concurrent.Callable;
  * @author Hisaya FUKUMOTO
  * @author Hiroshi Miura
  */
-@CommandLine.Command(name = "ebinfo", mixinStandardHelpOptions = true,
-description = "Show EPWING data information",
-version = {"EBInfo",
-        "Version " + EBDump.VERSION,
-        "Copyright (c) 2002-2007 by Hisaya FUKUMOTO.",
-        "Copyright (c) 2016,2021 Hiroshi Miura"})
+@CommandLine.Command(name = "info", mixinStandardHelpOptions = true, description = "Show EPWING data information")
 public final class EBInfo implements Callable<Integer> {
 
     /** デフォルト読み込みディレクトリ */
