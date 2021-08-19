@@ -16,15 +16,13 @@ import java.util.concurrent.Callable;
  * @author Hisaya FUKUMOTO
  * @author Hiroshi Miura
  */
+@CommandLine.Command(name = "ebinfo", mixinStandardHelpOptions = true,
+description = "Show EPWING data information",
+version = {"EBInfo",
+        "Version " + EBDump.VERSION,
+        "Copyright (c) 2002-2007 by Hisaya FUKUMOTO.",
+        "Copyright (c) 2016,2021 Hiroshi Miura"})
 public final class EBInfo implements Callable<Integer> {
-
-    /** コピーライト */
-    private static final String COPYRIGHT = "Copyright (c) 2002-2007 by Hisaya FUKUMOTO.\n"
-                                          + "Copyright (c) 2016 Hiroshi Miura";
-    /** E-Mailアドレス */
-    private static final String EMAIL = "miurahr@linux.com";
-    /** プロブラム名 */
-    private static final String PROGRAM = EBInfo.class.getName();
 
     /** デフォルト読み込みディレクトリ */
     private static final String DEFAULT_BOOK_DIR = ".";

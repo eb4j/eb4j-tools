@@ -36,11 +36,21 @@ import picocli.CommandLine;
  * @author Hisaya FUKUMOTO
  * @author Hiroshi Miura
  */
+@CommandLine.Command(name = "ebzip", mixinStandardHelpOptions = true,
+description = "Compress/Decompress EPWING data (.ebz)",
+version = {"EBZip",
+        "Version " + EBZip.VERSION,
+        "Copyright (c) 2002-2007 by Hisaya FUKUMOTO.",
+        "Copyright (c) 2016,2021 Hiroshi Miura"},
+exitCodeOnInvalidInput = 1,
+exitCodeOnExecutionException = 2)
 public final class EBZip implements Callable<Integer> {
     /**
      * プロブラム名
      */
     private static final String PROGRAM = EBZip.class.getName();
+
+    static final String VERSION = "2.0.0";
 
     /**
      * デフォルト読み込みディレクトリ
@@ -73,8 +83,7 @@ public final class EBZip implements Callable<Integer> {
     /**
      * 上書き方法
      */
-    @CommandLine.Option(names = {"-o", "--overwrite"}, negatable = true, description = "Overwrite output files",
-            defaultValue = "false")
+    @CommandLine.Option(names = {"--overwrite"}, description = "Overwrite output files", defaultValue = "false")
     boolean overwrite;
 
     /**
@@ -194,11 +203,11 @@ public final class EBZip implements Callable<Integer> {
     /**
      * Main function for EBZip command.
      * @param args
+     * @return
      */
     public static void main(final String... args) {
         System.exit(new CommandLine(new EBZip()).execute(args));
     }
-
 
     /**
      * コマンドを実行します。
