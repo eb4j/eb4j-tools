@@ -7,7 +7,7 @@ import picocli.CommandLine.HelpCommand;
 @Command(name = "eb",
         description = "EPWING ebook tools",
         mixinStandardHelpOptions = true,
-        subcommands = {HelpCommand.class, EBDump.class, EBZip.class, EBInfo.class},
+        subcommands = {HelpCommand.class, EBDump.class, EBZip.class, EBInfo.class, EBAppendix.class},
         synopsisSubcommandLabel = "[dump|info|zip]",
         version = {"eb4j-tools",
                 "Version " + Main.VERSION,
@@ -22,11 +22,6 @@ public class Main implements Runnable {
     public void run() {
     }
 
-    /**
-     * Main function.
-     * @param args command line arguments.
-     * @return exit code.
-     */
     public static void main(final String... args) {
         CommandLine cmd = new CommandLine(new Main());
         int returnCode = cmd.execute(args);
