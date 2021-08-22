@@ -118,10 +118,10 @@ public final class EBAppendix implements Callable<Integer>  {
                 boolean ignore = outTarget.mkdirs();
                 outFile = new File(outTarget, "furoku");
             }
-            if (verbose) {
-                System.err.println("output file:" + outFile.getPath());
-            }
             appendixCheck(subbook);
+            if (verbose) {
+                System.err.println("Start output to: "+ outFile.getPath());
+            }
             try (RandomAccessFile raf = new RandomAccessFile(outFile, "rw")) {
                 appendixWriter(raf, subbook);
             }
@@ -131,7 +131,7 @@ public final class EBAppendix implements Callable<Integer>  {
 
     private void createCatalogFile(final File outFile) {
         // FIXME: implement me.
-        return;
+        System.err.println("A catalog(s) generation feature is not implemented yet.");
     }
 
     private void appendixWriter(final RandomAccessFile raf, final SubAppendix subbook) throws Exception {
@@ -300,15 +300,19 @@ public final class EBAppendix implements Callable<Integer>  {
         if (subbook.hasStopCode()) {
             raf.write(ByteBuffer.allocate(4).putInt(stopPage).array());
         }
+        if (verbose) {
+            System.err.println("...done\n");
+        }
     }
 
     private void appendixCheck(final SubAppendix subbook) {
         if (verbose) {
-            System.err.println("Unicode alternation: " + (subbook.unicode ? "YES" : "NO"));
+            System.err.println("Start input parameter check...");
+            System.err.println("- Unicode alternation: " + (subbook.unicode ? "YES" : "NO"));
         }
         if (compat && subbook.unicode) {
-            System.out.println("unicode alternation required in definition YAML, but the tool launched with compat " +
-                    "mode.");
+            System.out.println("*** unicode alternation required in definition YAML, but the tool launched with " +
+                    "compat mode.");
         }
         if (subbook.hasNarrow()) {
             if (subbook.isEncoding("JISX0208")) {
@@ -318,7 +322,7 @@ public final class EBAppendix implements Callable<Integer>  {
                             || subbook.narrow.getEnd() < key
                             || (key & 0xff) < 0x21
                             || 0x7e < (key & 0xff)) {
-                        System.out.println("narrow: key is out of range: " + key);
+                        System.out.println("*** narrow: key is out of range: " + key);
                     }
                 }
             } else {
@@ -328,7 +332,7 @@ public final class EBAppendix implements Callable<Integer>  {
                             || subbook.narrow.getEnd() < key
                             || (key & 0xff) < 0x01
                             || 0xfe < (key & 0xff)) {
-                        System.out.println("narrow: key is out of range: " + key);
+                        System.out.println("*** narrow: key is out of range: " + key);
                     }
                 }
             }
@@ -339,7 +343,7 @@ public final class EBAppendix implements Callable<Integer>  {
                     int key = Integer.parseInt(keyString.substring(2), 16);
                     if (key < subbook.wide.getStart() || subbook.wide.getEnd() < key
                             || (key & 0xff) < 0x21 || 0x7f < (key & 0xff)) {
-                        System.out.println("wide: key is out of range: " + key);
+                        System.out.println("*** wide: key is out of range: " + key);
                     }
                 }
             } else {
@@ -349,10 +353,13 @@ public final class EBAppendix implements Callable<Integer>  {
                             || subbook.wide.getEnd() < key
                             || (key & 0xff) < 0x01
                             || 0xfe < (key & 0xff)) {
-                        System.out.println("narrow: key is out of range: " + key);
+                        System.out.println("*** narrow: key is out of range: " + key);
                     }
                 }
             }
+        }
+        if (verbose) {
+            System.err.println("Input parameter check done.");
         }
     }
 }
