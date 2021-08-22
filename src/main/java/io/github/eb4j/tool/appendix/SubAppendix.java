@@ -25,7 +25,7 @@ public class SubAppendix {
     public AltDef wide;
 
     @JsonSetter
-    public void setStopCode(String stopCode) {
+    public void setStopCode(final String stopCode) {
         this.stopCode = stopCode;
     }
 
@@ -52,7 +52,7 @@ public class SubAppendix {
         return encoding.equalsIgnoreCase(encode);
     }
 
-    public void setEncoding(String encoding) {
+    public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }
 

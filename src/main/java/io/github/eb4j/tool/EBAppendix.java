@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 
 import io.github.eb4j.tool.appendix.Appendix;
@@ -83,7 +82,6 @@ public final class EBAppendix implements Callable<Integer>  {
             e.printStackTrace();
             return 1;
         }
-        // appendixCheck();
         return generate();
     }
 
@@ -107,15 +105,9 @@ public final class EBAppendix implements Callable<Integer>  {
             } else {
                 outFile = new File(outDir, "catalogs");
             }
-            // createCatalogFile();
+            createCatalogFile(outFile);
         }
         for (SubAppendix subbook : appendix.subbook) {
-            if (subbook.hasNarrow()) {
-                //narrowLen = subbook.narrow.getLength(subbook.isEncoding("JISX0208"));
-            }
-            if (subbook.hasWide()) {
-                //wideLen = subbook.wide.getLength(subbook.isEncoding ("JISX0208"));
-            }
             File outFile;
             if (appendix.type.equals("EB")) {
                 outFile = new File(new File(outDir, subbook.name), "appendix");
@@ -128,11 +120,17 @@ public final class EBAppendix implements Callable<Integer>  {
                 System.err.println("Start parse input files.");
                 System.err.println("output file:" + outFile.getPath());
             }
+            appendixCheck(subbook);
             try (RandomAccessFile raf = new RandomAccessFile(outFile, "rw")) {
                 appendixWriter(raf, subbook);
             }
         }
         return 0;
+    }
+
+    private void createCatalogFile(final File outFile) {
+        // FIXME: implement me.
+        return;
     }
 
     private void appendixWriter(final RandomAccessFile raf, final SubAppendix subbook) throws Exception {
@@ -246,7 +244,8 @@ public final class EBAppendix implements Callable<Integer>  {
                 raf.write('\0');
             }
             raf.write(ByteBuffer.allocate(2).putShort((short)subbook.narrow.getStart()).array());
-            raf.write(ByteBuffer.allocate(2).putShort(subbook.narrow.getLength(subbook.isEncoding("JISX0208"))).array());
+            raf.write(ByteBuffer.allocate(2).putShort(subbook.narrow.getLength(
+                    subbook.isEncoding("JISX0208"))).array());
             raf.write('\0');
             raf.write('\0');
         } else {
@@ -278,14 +277,20 @@ public final class EBAppendix implements Callable<Integer>  {
             if (subbook.isEncoding("JISX0208")) {
                 for (String keyString: subbook.narrow.keySet()) {
                     int key = Integer.parseInt(keyString.substring(2), 16);
-                    if (key < subbook.narrow.getStart() || subbook.narrow.getEnd() < key || (key & 0xff) < 0x21 || 0x7e < (key & 0xff)) {
+                    if (key < subbook.narrow.getStart()
+                            || subbook.narrow.getEnd() < key
+                            || (key & 0xff) < 0x21
+                            || 0x7e < (key & 0xff)) {
                         System.out.println("narrow: key is out of range: " + key);
                     }
                 }
             } else {
                 for (String keyString: subbook.narrow.keySet()) {
                     int key = Integer.parseInt(keyString.substring(2), 16);
-                    if (key < subbook.narrow.getStart() || subbook.narrow.getEnd() < key || (key & 0xff) < 0x01 || 0xfe < (key & 0xff)) {
+                    if (key < subbook.narrow.getStart()
+                            || subbook.narrow.getEnd() < key
+                            || (key & 0xff) < 0x01
+                            || 0xfe < (key & 0xff)) {
                         System.out.println("narrow: key is out of range: " + key);
                     }
                 }
@@ -303,7 +308,10 @@ public final class EBAppendix implements Callable<Integer>  {
             } else {
                 for (String keyString: subbook.wide.keySet()) {
                     int key = Integer.parseInt(keyString.substring(2), 16);
-                    if (key < subbook.wide.getStart() || subbook.wide.getEnd() < key || (key & 0xff) < 0x01 || 0xfe < (key & 0xff)) {
+                    if (key < subbook.wide.getStart()
+                            || subbook.wide.getEnd() < key
+                            || (key & 0xff) < 0x01
+                            || 0xfe < (key & 0xff)) {
                         System.out.println("narrow: key is out of range: " + key);
                     }
                 }
