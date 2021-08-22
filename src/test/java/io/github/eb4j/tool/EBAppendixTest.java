@@ -11,8 +11,15 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 
+/**
+ * Test of appendix subcommand.
+ */
 public class EBAppendixTest {
 
+    /**
+     * Test loading actual definition data and compare with expected output.
+     * @throws Exception when file I/O failure.
+     */
     @Test
     public void testEBAppendix() throws Exception {
         EBAppendix ebAppendix = new EBAppendix();
