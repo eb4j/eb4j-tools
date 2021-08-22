@@ -12,9 +12,10 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-    - uses: actions/setup-java@v1
+    - uses: actions/setup-java@v2
       with:
-        java-version: 1.8
+        distribution: 'adopt'
+        java-version: '11'
     - name: Get the version
       id: get_version
       run: |
@@ -22,11 +23,11 @@ jobs:
         echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
     - uses: burrunan/gradle-cache-action@v1
       with:
-        gradle-version: 6.7.1
+        gradle-version: 6.9
         arguments: build
         properties: |
           version=${{ steps.get_version.outputs.VERSION }}
-          group=com.github.eb4j
+          group=io.github.eb4j
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
