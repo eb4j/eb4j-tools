@@ -3,10 +3,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Add appendix generation utility
+- Support unicode extension
+
 ### Changed
-- Gradle: Drop version automation.
-- Change project group to com.github.eb4j
-- Add repository to docs subproject
+- Spin out tools to its individual project
+- Change license to GPL-3
+- Use picocli for CLI options
+- Support subcommand
 
 ## [2.1.0] - 2021-03-10
 
