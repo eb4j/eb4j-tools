@@ -100,6 +100,10 @@ public final class EBAppendix implements Callable<Integer>  {
             e.printStackTrace();
             return 1;
         }
+        if (appendix == null) {
+            System.out.println("*** Failed to read specified definition. Abort...");
+            return 1;
+        }
         if (catalog) {
             File outFile;
             if (appendix.type.equals("EB")) {
@@ -108,6 +112,10 @@ public final class EBAppendix implements Callable<Integer>  {
                 outFile = new File(outDir, "catalogs");
             }
             createCatalogFile(outFile);
+        }
+        if (appendix.subbook.size() > MAX_SUBBOOKS) {
+            System.out.println("*** A number of subbook definitions are exceeded the limit. Abort...");
+            return 1;
         }
         for (SubAppendix subbook : appendix.subbook) {
             File outFile;
@@ -246,11 +254,12 @@ public final class EBAppendix implements Callable<Integer>  {
             raf.write('\0');
             raf.write('\1');
             raf.write(subbook.getStopCodeBytes());
-            int padLen = (int) (SIZE_PAGE - raf.getFilePointer() % SIZE_PAGE);
-            for (int j = 0; j < padLen; j++) {
-                raf.write('\0');
-            }
         }
+        int padLen = (int) (SIZE_PAGE - raf.getFilePointer() % SIZE_PAGE);
+        for (int j = 0; j < padLen; j++) {
+            raf.write('\0');
+        }
+
         // output index page
         if (verbose) {
             System.err.println("Write index header...");
@@ -313,6 +322,9 @@ public final class EBAppendix implements Callable<Integer>  {
         if (compat && subbook.unicode) {
             System.out.println("*** unicode alternation required in definition YAML, but the tool launched with " +
                     "compat mode.");
+        }
+        if (subbook.name.length() > MAXLEN_SUBNAME) {
+            System.out.println("*** Definition of dictionary name length is exceeded the limit.");
         }
         if (subbook.hasNarrow()) {
             if (subbook.isEncoding("JISX0208")) {

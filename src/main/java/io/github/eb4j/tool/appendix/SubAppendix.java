@@ -56,6 +56,7 @@ public class SubAppendix {
         return encoding.equalsIgnoreCase(encode);
     }
 
+    @JsonSetter
     public void setEncoding(final String encoding) {
         this.encoding = encoding;
     }
