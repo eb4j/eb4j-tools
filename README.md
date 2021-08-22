@@ -1,6 +1,31 @@
 # EB4j-tools
 
-EPWING/Ebook access utilities.
+EPWING/Ebook access command line utilities.
+
+## Commands
+
+- `eb appendix`: utility to generate appendix dictionary data from YAML definition source.
+- `eb dump`: print hex data from epwing/eb dictionary/book.
+- `eb info`: print epwing/eb metadata information.
+- `eb zip`: compress/decompress epwing/eb data (.ebz). 
+
+## Description
+
+### Appendix
+
+Appendix is a extension that provide extended data of EPWING/EB dictionaries/books.
+EB library(C) and EB4J library recognize and load appendix data and process EPWING/EB data properly.
+It defines **end-of-article** mark code(stop-code), character set (ISO-8859-1 or JIS-X-0208), and **GAIJI**.
+eb4j-tools accept Unicode characters as alternation of GAIJI code where EB library only accept characters in EUC-JP character encoding.
+
+### Info
+
+`eb info` subcommand will show EPWING/EB book information as same as EB library's ebinfo command does.
+
+### Zip
+
+EB4J, EB library and some other EPWING reader applications such as GoldenDict and EBWin accept commpressed 
+dictionary/book data with `eb zip` subcommand or `ebzip` command from EB library, which has extension `.ebz`.
 
 
 ## Build
