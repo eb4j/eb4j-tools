@@ -13,7 +13,11 @@ public class SubAppendix {
     private static final Pattern PATTERN = Pattern.compile("0x1f([0-9]{2})([0-9-a-f]{2})([0-9a-f]{2})",
             Pattern.CASE_INSENSITIVE);
 
+    @JsonProperty("name")
     public String name;
+
+    @JsonProperty("unicode")
+    public Boolean unicode;
 
     @JsonProperty("character-code")
     private String encoding;

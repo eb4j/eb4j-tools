@@ -1,8 +1,12 @@
 ---
+title: 研究社 新英和和英中辞典
+target:
+  - a
+  - b
 type: EPWING
 subbook:
   - name: chujiten
-    unicode: false
+    unicode: true
     character-code: JISX0208
     stop-code: 0x1f090001
     narrow:

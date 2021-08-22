@@ -2,12 +2,16 @@ package io.github.eb4j.tool;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.apache.commons.text.StringEscapeUtils;
+import org.apache.commons.text.translate.UnicodeEscaper;
+import org.apache.commons.text.translate.UnicodeUnescaper;
 import picocli.CommandLine;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 
 import io.github.eb4j.tool.appendix.Appendix;
@@ -21,7 +25,7 @@ public final class EBAppendix implements Callable<Integer>  {
 
     private static final String DEFAULT_APPENDIX_DIR = ".";
     /**
-     * maxmum length of alternation text.
+     * maximum length of alternation text w/o null terminate.
      */
     private static final int MAXLEN_ALTERNATION = 31;
 
@@ -46,6 +50,9 @@ public final class EBAppendix implements Callable<Integer>  {
     @CommandLine.Option(names = {"--no-catalog"}, negatable = true, description = "don't output a catalog file")
     boolean catalog = false;
 
+    @CommandLine.Option(names = {"-c", "--compat"}, description = "compatibility mode (no unicode extension)")
+    boolean compat = false;
+
     @CommandLine.Option(names = {"--verbose"}, description = "verbose output for debug")
     boolean verbose = false;
 
@@ -65,6 +72,14 @@ public final class EBAppendix implements Callable<Integer>  {
     }
 
     /**
+     * Main function.
+     * @param args
+     */
+    public static void main(final String... args) {
+        System.exit(new CommandLine(new EBAppendix()).execute(args));
+    }
+
+    /**
      * Run program, or throws an exception if got error.
      *
      * @return computed result
@@ -76,28 +91,15 @@ public final class EBAppendix implements Callable<Integer>  {
             System.err.println("Input YAML file(.yml) does not exist.");
             return 1;
         }
+        if (verbose) {
+            System.err.println("Parsing input file:" + path.getPath());
+        }
         try {
             appendix = getAppendix(path);
         } catch (Exception e) {
             e.printStackTrace();
             return 1;
         }
-        return generate();
-    }
-
-    /**
-     * Main function.
-     * @param args
-     */
-    public static void main(final String... args) {
-        System.exit(new CommandLine(new EBAppendix()).execute(args));
-    }
-
-    /**
-     * generate appendix files.
-     * @return exit vale.
-     */
-    protected int generate() throws Exception {
         if (catalog) {
             File outFile;
             if (appendix.type.equals("EB")) {
@@ -116,11 +118,10 @@ public final class EBAppendix implements Callable<Integer>  {
                 boolean ignore = outTarget.mkdirs();
                 outFile = new File(outTarget, "furoku");
             }
-            if (verbose) {
-                System.err.println("Start parse input files.");
-                System.err.println("output file:" + outFile.getPath());
-            }
             appendixCheck(subbook);
+            if (verbose) {
+                System.err.println("Start output to: "+ outFile.getPath());
+            }
             try (RandomAccessFile raf = new RandomAccessFile(outFile, "rw")) {
                 appendixWriter(raf, subbook);
             }
@@ -130,28 +131,40 @@ public final class EBAppendix implements Callable<Integer>  {
 
     private void createCatalogFile(final File outFile) {
         // FIXME: implement me.
-        return;
+        System.err.println("A catalog(s) generation feature is not implemented yet.");
     }
 
     private void appendixWriter(final RandomAccessFile raf, final SubAppendix subbook) throws Exception {
         int narrowPage = 0;
         int widePage = 0;
         int stopPage = 0;
+        UnicodeEscaper escaper = UnicodeEscaper.above(0x7e);
         // fill header with null bytes
         for (int i = 0; i < SIZE_PAGE; i++) {
             raf.write('\0');
         }
         // write narrow def
         if (subbook.hasNarrow()) {
+            if (verbose) {
+                System.err.println("Write narrow character definitions...");
+            }
             narrowPage = (int)(1 + raf.getFilePointer() / SIZE_PAGE);
             int i = subbook.narrow.getStart();
             while (i <= subbook.narrow.getEnd()) {
                 if (subbook.narrow.containsKey(i)) {
                     String altString = subbook.narrow.getAlt(i);
-                    byte[] altByte = altString.getBytes("EUC-JP");
-                    raf.write(altByte);
-                    for (int j = 0; j < 1 + MAXLEN_ALTERNATION - altByte.length; j++) {
-                        raf.write('\0');
+                    if (compat) {
+                        byte[] altByte = altString.getBytes("EUC-JP");
+                        raf.write(altByte);
+                        for (int j = 0; j < 1 + MAXLEN_ALTERNATION - altByte.length; j++) {
+                            raf.write('\0');
+                        }
+                    } else {
+                        byte[] altByte = escaper.translate(altString).getBytes(StandardCharsets.US_ASCII);
+                        raf.write(altByte);
+                        for (int j = 0; j < 1 + MAXLEN_ALTERNATION - altByte.length; j++) {
+                            raf.write('\0');
+                        }
                     }
                 } else {
                     for (int j= 0; j < 32; j++) {
@@ -179,15 +192,26 @@ public final class EBAppendix implements Callable<Integer>  {
         }
         // write wide def
         if (subbook.hasWide()) {
+            if (verbose) {
+                System.err.println("Write wide character definitions...");
+            }
             widePage = 1 + (int) (raf.getFilePointer() / SIZE_PAGE);
             int i = subbook.wide.getStart();
             while (i <= subbook.wide.getEnd()) {
                 if (subbook.wide.containsKey(i)) {
                     String altString = subbook.wide.getAlt(i);
-                    byte[] altByte = altString.getBytes("EUC-JP");
-                    raf.write(altByte);
-                    for (int j = 0; j < 1 + MAXLEN_ALTERNATION - altByte.length; j++) {
-                        raf.write('\0');
+                    if (compat) {
+                        byte[] altByte = altString.getBytes("EUC-JP");
+                        raf.write(altByte);
+                        for (int j = 0; j < 1 + MAXLEN_ALTERNATION - altByte.length; j++) {
+                            raf.write('\0');
+                        }
+                    } else {
+                        byte[] altByte = escaper.translate(altString).getBytes(StandardCharsets.US_ASCII);
+                        raf.write(altByte);
+                        for (int j = 0; j < 1 + MAXLEN_ALTERNATION - altByte.length; j++) {
+                            raf.write('\0');
+                        }
                     }
                 } else {
                     for (int j = 0; j < 32; j++) {
@@ -216,6 +240,9 @@ public final class EBAppendix implements Callable<Integer>  {
         // output stop-code
         stopPage = 1 + (int) (raf.getFilePointer() / SIZE_PAGE);
         if (subbook.hasStopCode()) {
+            if (verbose) {
+                System.err.println("Write stop-code...");
+            }
             raf.write('\0');
             raf.write('\1');
             raf.write(subbook.getStopCodeBytes());
@@ -225,6 +252,9 @@ public final class EBAppendix implements Callable<Integer>  {
             }
         }
         // output index page
+        if (verbose) {
+            System.err.println("Write index header...");
+        }
         raf.seek(0);
         raf.write('\0');
         raf.write('\3');
@@ -270,9 +300,20 @@ public final class EBAppendix implements Callable<Integer>  {
         if (subbook.hasStopCode()) {
             raf.write(ByteBuffer.allocate(4).putInt(stopPage).array());
         }
+        if (verbose) {
+            System.err.println("...done\n");
+        }
     }
 
     private void appendixCheck(final SubAppendix subbook) {
+        if (verbose) {
+            System.err.println("Start input parameter check...");
+            System.err.println("- Unicode alternation: " + (subbook.unicode ? "YES" : "NO"));
+        }
+        if (compat && subbook.unicode) {
+            System.out.println("*** unicode alternation required in definition YAML, but the tool launched with " +
+                    "compat mode.");
+        }
         if (subbook.hasNarrow()) {
             if (subbook.isEncoding("JISX0208")) {
                 for (String keyString: subbook.narrow.keySet()) {
@@ -281,7 +322,7 @@ public final class EBAppendix implements Callable<Integer>  {
                             || subbook.narrow.getEnd() < key
                             || (key & 0xff) < 0x21
                             || 0x7e < (key & 0xff)) {
-                        System.out.println("narrow: key is out of range: " + key);
+                        System.out.println("*** narrow: key is out of range: " + key);
                     }
                 }
             } else {
@@ -291,7 +332,7 @@ public final class EBAppendix implements Callable<Integer>  {
                             || subbook.narrow.getEnd() < key
                             || (key & 0xff) < 0x01
                             || 0xfe < (key & 0xff)) {
-                        System.out.println("narrow: key is out of range: " + key);
+                        System.out.println("*** narrow: key is out of range: " + key);
                     }
                 }
             }
@@ -302,7 +343,7 @@ public final class EBAppendix implements Callable<Integer>  {
                     int key = Integer.parseInt(keyString.substring(2), 16);
                     if (key < subbook.wide.getStart() || subbook.wide.getEnd() < key
                             || (key & 0xff) < 0x21 || 0x7f < (key & 0xff)) {
-                        System.out.println("wide: key is out of range: " + key);
+                        System.out.println("*** wide: key is out of range: " + key);
                     }
                 }
             } else {
@@ -312,10 +353,13 @@ public final class EBAppendix implements Callable<Integer>  {
                             || subbook.wide.getEnd() < key
                             || (key & 0xff) < 0x01
                             || 0xfe < (key & 0xff)) {
-                        System.out.println("narrow: key is out of range: " + key);
+                        System.out.println("*** narrow: key is out of range: " + key);
                     }
                 }
             }
+        }
+        if (verbose) {
+            System.err.println("Input parameter check done.");
         }
     }
 }
