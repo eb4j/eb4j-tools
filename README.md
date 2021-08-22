@@ -32,9 +32,12 @@ forking source and send modification as a Pull Request.
 It is recommended to post an issue before sending a patch,
 and share your opinions and/or problems.
 
+
 ## Copyrights and License
 
-EB4j, an access library for EPWING/Ebook.
+EB4j-tools: EPWING/Ebook handling utilities
+
+Copyright(C) 1997-2006 Motoyuki Kasahara
 
 Copyright(C) 2003-2010 Hisaya FUKUMOTO
 
