@@ -30,11 +30,35 @@ public class EBAppendixTest {
         ebAppendix.path = appendixPath;
         ebAppendix.outDir = outPath.getAbsolutePath();
         ebAppendix.verbose = true;
-        ebAppendix.appendix = EBAppendix.getAppendix(appendixPath);
-        int result = ebAppendix.generate();
+        ebAppendix.compat = true;
+        int result = ebAppendix.call();
         assertEquals(result, 0);
         File furokuPath = new File(Objects.requireNonNull(this.getClass().getResource("/data/appendix-compat/furoku"))
                 .getFile()).getAbsoluteFile();
+        assertTrue(FileUtils.contentEquals(new File(outPath, "chujiten/data/furoku"), furokuPath));
+    }
+
+    /**
+     * Test unicode mode.
+     * @throws Exception when file I/O failure.
+     */
+    @Test
+    public void testEBAppendixUnicode() throws Exception {
+        EBAppendix ebAppendix = new EBAppendix();
+        File appendixPath = new File(Objects.requireNonNull(this.getClass().getResource("/data/appendix-unicode" +
+                        "/appendix.yml"))
+                .getFile()).getAbsoluteFile();
+        File outPath = Files.createTempDirectory("testEBAppendix").toFile();
+        outPath.deleteOnExit();
+        ebAppendix.path = appendixPath;
+        ebAppendix.outDir = outPath.getAbsolutePath();
+        ebAppendix.verbose = true;
+        ebAppendix.compat = false;
+        int result = ebAppendix.call();
+        assertEquals(result, 0);
+        File furokuPath = new File(Objects.requireNonNull(this.getClass().getResource
+         ("/data/appendix-unicode/furoku"))
+               .getFile()).getAbsoluteFile();
         assertTrue(FileUtils.contentEquals(new File(outPath, "chujiten/data/furoku"), furokuPath));
     }
 }

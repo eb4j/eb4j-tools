@@ -2,6 +2,7 @@
 type: EPWING
 subbook:
   - name: chujiten
+    unicode: false
     character-code: JISX0208
     stop-code: 0x1f090001
     narrow:
