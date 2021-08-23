@@ -11,6 +11,7 @@ plugins {
     id 'checkstyle'
     id 'application'
     id 'com.palantir.git-version' version "0.12.3"
+    id 'org.mikeneck.graalvm-native-image' version 'v1.4.0'
 }
 
 // calculate version string from git tag, hash and commit distance
@@ -57,6 +58,19 @@ test.useTestNG()
 
 compileJava {
     options.compilerArgs += ["-Aproject=${project.group}/${project.name}"]
+    options.encoding = "UTF-8"
+}
+compileTestJava {options.encoding = "UTF-8"}
+
+nativeImage {
+  graalVmHome = System.getProperty('java.home')
+  buildType { build ->
+    build.executable {
+      main = 'io.github.eb4j.tool.Main'
+    }
+  }
+  executableName = 'eb'
+  outputDirectory = file("$buildDir/bin")
 }
 
 distTar {
