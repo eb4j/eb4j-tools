@@ -1,13 +1,16 @@
 // eb4j-tools gradle build script.
 //
+// EB4j tools is built by Graalvm native image utility.
+//
 // Copyright (c) 2016,2020-2021 Hiroshi Miura
 //
+
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
     id 'java'
     id 'maven'
     id 'checkstyle'
-    id 'application'
     id 'com.palantir.git-version' version "0.12.3"
     id 'org.mikeneck.graalvm-native-image' version 'v1.4.0'
 }
@@ -23,11 +26,6 @@ if (versionDetails().isCleanTag) {
 }
 
 group = projectGroup
-
-application {
-    applicationName = "eb"
-    mainClassName("io.github.eb4j.tool.Main")
-}
 
 repositories {
     mavenCentral()
@@ -59,6 +57,7 @@ compileJava {
 }
 compileTestJava {options.encoding = "UTF-8"}
 
+// Generate native command image by Graalvm native image utility
 nativeImage {
     graalVmHome = System.getProperty('java.home')
     buildType { build ->
@@ -70,19 +69,27 @@ nativeImage {
     outputDirectory = file("$buildDir/bin")
     arguments {
         add '--no-fallback'
+        add '-H:ReflectionConfigurationFiles=config/native-image/reflect-config.json'
+        add '--initialize-at-build-time=com.fasterxml.jackson,com.fasterxml.jackson.annotation,org.slf4j,org.yaml.snakeyaml'
         add '--enable-all-security-services'
-        add '--initialize-at-run-time=io.github.eb4j.tool.appendix'
-        add '--initialize-at-build-time=com.fasterxml.jackson,org.slf4j,org.yaml.snakeyaml,com.fasterxml.jackson.annotation.JsonProperty$Access'
-        add '--report-unsupported-elements-at-runtime'
-        add '-H:ReflectionConfigurationFiles=reflect-config.json'
+        // add '--initialize-at-run-time='
+        // add '--report-unsupported-elements-at-runtime'
     }
 }
 
-def os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.currentOperatingSystem;
-def arch = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.currentArchitecture;
-
+// generate native command distribution zip file for each supported platform.
 task zipExecutable(type: Zip) {
     dependsOn 'nativeImage'
+
+    // distribution contents
+    from("$buildDir/bin")
+    from('README.md')
+    from('LICENSE.txt')
+
+    // output zip file path and name
+    destinationDirectory = file("$buildDir/distributions")
+    def os = DefaultNativePlatform.currentOperatingSystem;
+    def arch = DefaultNativePlatform.currentArchitecture;
     if (os.name.startsWith("Windows")) {
         archiveFileName = "eb-win32-${arch.name}-${project.version}.zip"
     } else if (os.name.startsWith("Mac")) {
@@ -92,10 +99,6 @@ task zipExecutable(type: Zip) {
     } else {
         archiveFileName = "eb-other-${arch.name}-${project.version}.zip"
     }
-    destinationDirectory = file("$buildDir/distributions")
-    from("$buildDir/bin")
-    from('README.md')
-    from('LICENSE.txt')
 }
 
 checkstyle {
