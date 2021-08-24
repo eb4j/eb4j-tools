@@ -88,10 +88,9 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         name: Release v${{ steps.get_version.outputs.VERSION }}
+        body_path: release_note.md
         draft: false
         prerelease: false
         discussion_category_name: Announcements
         files: |
-          README.md
-          CHANGELOG.md
           distributions/*
