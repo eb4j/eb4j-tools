@@ -2,9 +2,7 @@ package io.github.eb4j.tool;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.text.translate.UnicodeEscaper;
-import org.apache.commons.text.translate.UnicodeUnescaper;
 import picocli.CommandLine;
 
 import java.io.File;
