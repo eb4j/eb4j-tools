@@ -10,13 +10,7 @@ import java.util.List;
 public class Appendix {
     private String title;
     private String type;
-    private List<SubAppendix> subbook;
-
-    public Appendix() {
-        this.title = null;
-        this.type = null;
-        this.subbook = new ArrayList<>();
-    }
+    private List<SubAppendix> subbook = new ArrayList<>();
 
     @JsonGetter
     public String getTitle() {

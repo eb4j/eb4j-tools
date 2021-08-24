@@ -7,6 +7,7 @@ plugins {
     id 'java'
     id 'maven'
     id 'checkstyle'
+    id 'application'
     id 'com.palantir.git-version' version "0.12.3"
     id 'org.mikeneck.graalvm-native-image' version 'v1.4.0'
 }
@@ -22,6 +23,11 @@ if (versionDetails().isCleanTag) {
 }
 
 group = projectGroup
+
+application {
+    applicationName = "eb"
+    mainClassName("io.github.eb4j.tool.Main")
+}
 
 repositories {
     mavenCentral()
@@ -54,14 +60,22 @@ compileJava {
 compileTestJava {options.encoding = "UTF-8"}
 
 nativeImage {
-  graalVmHome = System.getProperty('java.home')
-  buildType { build ->
-    build.executable {
-      main = 'io.github.eb4j.tool.Main'
+    graalVmHome = System.getProperty('java.home')
+    buildType { build ->
+        build.executable {
+            main = 'io.github.eb4j.tool.Main'
+        }
     }
-  }
-  executableName = 'eb'
-  outputDirectory = file("$buildDir/bin")
+    executableName = 'eb'
+    outputDirectory = file("$buildDir/bin")
+    arguments {
+        add '--no-fallback'
+        add '--enable-all-security-services'
+        add '--initialize-at-run-time=io.github.eb4j.tool.appendix'
+        add '--initialize-at-build-time=com.fasterxml.jackson,org.slf4j,org.yaml.snakeyaml,com.fasterxml.jackson.annotation.JsonProperty$Access'
+        add '--report-unsupported-elements-at-runtime'
+        add '-H:ReflectionConfigurationFiles=reflect-config.json'
+    }
 }
 
 def os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.currentOperatingSystem;
