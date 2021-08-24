@@ -1,12 +1,27 @@
-name: Upload Assets to github release
+name: check, build native image, and release
 
-on:
-  push:
-    tags:
-    - 'v*'
+on: push
 
 jobs:
+  check:
+    name: run gradle check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 100
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+      - uses: eskatos/gradle-command-action@v1
+        name: gradle build
+        with:
+          arguments: check
+
   build:
+    name: Build native image
+    needs: [check]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -19,7 +34,6 @@ jobs:
             gu-binary: gu.cmd
           - os: windows-latest
             gu-binary: gu
-    name: Upload Release Asset
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -55,21 +69,14 @@ jobs:
   release:
     name: publish on github release
     runs-on: ubuntu-latest
+    needs: [build]
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Get the version
       id: get_version
       run: |
-        if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-        echo ::set-output name=OS_ARCH::Linux-x86_64
-        fi
-        if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-        echo ::set-output name=OS_ARCH::Macos-x86_64
-        fi
-        if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-        echo ::set-output name=OS_ARCH::Windows-x86_64
-        fi
         echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
     - name: Download artifact
       uses: actions/download-artifact@v2
@@ -78,21 +85,13 @@ jobs:
         path: distributions
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release v${{ steps.get_version.outputs.VERSION }}
+        name: Release v${{ steps.get_version.outputs.VERSION }}
         draft: false
         prerelease: false
-    - name: Upload Release Asset(tools,zip)
-      id: upload-release-tools-zip
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: distributions/eb-${{ steps.get_version.outputs.OS_ARCH }}-${{ steps.get_version.outputs.VERSION }}.zip
-        asset_name: eb-${{ steps.get_version.outputs.OS_ARCH }}-${{ steps.get_version.outputs.VERSION }}.zip
-        asset_content_type: application/zip
+        discussion_category_name: Announcements
+        files: |
+          README.md
+          CHANGELOG.md
+          distributions/*
