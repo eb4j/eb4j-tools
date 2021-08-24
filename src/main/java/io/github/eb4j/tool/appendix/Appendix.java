@@ -5,7 +5,6 @@ import java.util.List;
 
 public class Appendix {
     public String title;
-    public List<String> target;
     public String type;
     public List<SubAppendix> subbook;
 }
