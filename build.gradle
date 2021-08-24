@@ -69,7 +69,15 @@ def arch = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.cur
 
 task zipExecutable(type: Zip) {
     dependsOn 'nativeImage'
-    archiveFileName = "eb-${os.name}-${arch.name}-${project.version}.zip"
+    if (os.name.startsWith("Windows")) {
+        archiveFileName = "eb-win32-${arch.name}-${project.version}.zip"
+    } else if (os.name.startsWith("Mac")) {
+        archiveFileName = "eb-mac-${arch.name}-${project.version}.zip"
+    } else if (os.name.startsWith("Linux")) {
+        archiveFileName = "eb-linux-${arch.name}-${project.version}.zip"
+    } else {
+        archiveFileName = "eb-other-${arch.name}-${project.version}.zip"
+    }
     destinationDirectory = file("$buildDir/distributions")
     from("$buildDir/bin")
     from('README.md')
