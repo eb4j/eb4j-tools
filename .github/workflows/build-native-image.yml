@@ -3,7 +3,7 @@ name: Build native image
 on: push
 
 jobs:
-  sample-job:
+  buildNativeImage:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -40,5 +40,5 @@ jobs:
           arguments: zipExecutable
       - uses: actions/upload-artifact@v2
         with:
-          name: eb-${{ matrix.os }}
-          path: build/distributions/*
+          name: artifact-${{ matrix.os }}
+          path: build/distributions/
