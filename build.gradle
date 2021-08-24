@@ -1,15 +1,12 @@
-// eb4j gradle build script.
+// eb4j-tools gradle build script.
 //
 // Copyright (c) 2016,2020-2021 Hiroshi Miura
 //
 
 plugins {
     id 'java'
-    id 'jacoco'
     id 'maven'
-    id 'distribution'
     id 'checkstyle'
-    id 'application'
     id 'com.palantir.git-version' version "0.12.3"
     id 'org.mikeneck.graalvm-native-image' version 'v1.4.0'
 }
@@ -31,26 +28,20 @@ repositories {
     mavenLocal()
 }
 
-application {
-    applicationName = "eb"
-    mainClassName("io.github.eb4j.tool.Main")
-}
-
-applicationDistribution.into("bin") {
-    duplicatesStrategy= DuplicatesStrategy.EXCLUDE
-    fileMode = 0755
-}
-
 dependencies {
     implementation('io.github.eb4j:eb4j:2.1.11')
+    // for CLI
+    implementation 'info.picocli:picocli:4.6.1'
+    annotationProcessor 'info.picocli:picocli-codegen:4.6.1'
+    // for appendix compilation
     implementation 'org.apache.commons:commons-lang3:3.11'
     implementation 'org.apache.commons:commons-text:1.9'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.12.4'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.4'
-    implementation 'info.picocli:picocli:4.6.1'
+    // for EB4j logging backend
     implementation 'org.slf4j:slf4j-simple:1.7.32'
-    annotationProcessor 'info.picocli:picocli-codegen:4.6.1'
+    //
     testImplementation 'commons-io:commons-io:2.7'
     testImplementation 'org.testng:testng:7.4.0'
 }
@@ -73,15 +64,16 @@ nativeImage {
   outputDirectory = file("$buildDir/bin")
 }
 
-distTar {
-    compression = Compression.BZIP2
-}
+def os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.currentOperatingSystem;
+def arch = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.currentArchitecture;
 
-distributions {
-    main.contents {
-        from('README.md')
-        from('LICENSE.txt')
-    }
+task zipExecutable(type: Zip) {
+    dependsOn 'nativeImage'
+    archiveFileName = "eb-${os.name}-${arch.name}-${project.version}.zip"
+    destinationDirectory = file("$buildDir/distributions")
+    from("$buildDir/bin")
+    from('README.md')
+    from('LICENSE.txt')
 }
 
 checkstyle {

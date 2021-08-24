@@ -7,27 +7,75 @@ on:
 
 jobs:
   build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        gu-binary: [gu, gu.cmd]
+        exclude:
+          - os: ubuntu-latest
+            gu-binary: gu.cmd
+          - os: macos-latest
+            gu-binary: gu.cmd
+          - os: windows-latest
+            gu-binary: gu
     name: Upload Release Asset
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - uses: ilammy/msvc-dev-cmd@v1.9.0
+      if: startswith(matrix.os, 'windows')
+    - uses: microsoft/setup-msbuild@v1
+      if: startswith(matrix.os, 'windows')
+    - name: Setup Graalvm
+      id: setup-graalvm
+      uses: DeLaGuardo/setup-graalvm@master
+      with:
+        graalvm: '21.2.0'
+        java: 'java11'
+        arch: 'amd64'
+    - name: Install native-image component
+      run: |
+        ${{ matrix.gu-binary }} install native-image
+    - name: Get the version
+      id: get_version
+      run: |
+        echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
+    - uses: burrunan/gradle-cache-action@v1
+      name: Run gradle nativeImage
+      with:
+        gradle-version: 6.9
+        arguments: zipExecutable
+    - name: Upload java dist asset
+      uses: actions/upload-artifact@v2
+      with:
+        name: release-files
+        path: build/distributions/
+
+  release:
+    name: publish on github release
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-    - uses: actions/setup-java@v2
-      with:
-        distribution: 'adopt'
-        java-version: '11'
     - name: Get the version
       id: get_version
       run: |
-        REV_COUNT=`git rev-list --count HEAD`
+        if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+        echo ::set-output name=OS_ARCH::Linux-x86_64
+        fi
+        if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+        echo ::set-output name=OS_ARCH::Macos-x86_64
+        fi
+        if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+        echo ::set-output name=OS_ARCH::Windows-x86_64
+        fi
         echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
-    - uses: burrunan/gradle-cache-action@v1
+    - name: Download artifact
+      uses: actions/download-artifact@v2
       with:
-        gradle-version: 6.9
-        arguments: build
-        properties: |
-          version=${{ steps.get_version.outputs.VERSION }}
-          group=io.github.eb4j
+        name: release-files
+        path: distributions
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -45,16 +93,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/distributions/eb4j-tools-${{ steps.get_version.outputs.VERSION }}.zip
-        asset_name: eb4j-tools-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_path: distributions/eb-${{ steps.get_version.outputs.OS_ARCH }}-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_name: eb-${{ steps.get_version.outputs.OS_ARCH }}-${{ steps.get_version.outputs.VERSION }}.zip
         asset_content_type: application/zip
-    - name: Upload Release Asset(tools,tgz)
-      id: upload-release-tools-tgz
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/distributions/eb4j-tools-${{ steps.get_version.outputs.VERSION }}.tbz2
-        asset_name: eb4j-tools-${{ steps.get_version.outputs.VERSION }}.tbz2
-        asset_content_type: application/bzip2
