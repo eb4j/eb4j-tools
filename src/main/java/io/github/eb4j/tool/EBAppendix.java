@@ -118,6 +118,7 @@ public final class EBAppendix implements Callable<Integer>  {
         for (SubAppendix subbook : appendix.getSubbook()) {
             File outFile;
             if (appendix.getType().equals("EB")) {
+                boolean ignore = new File(outDir).mkdirs();
                 outFile = new File(new File(outDir, subbook.name), "appendix");
             } else {
                 File outTarget = new File(new File(outDir, subbook.name), "data");
