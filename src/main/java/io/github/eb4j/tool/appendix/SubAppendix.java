@@ -66,7 +66,7 @@ public class SubAppendix {
     }
 
     public boolean hasWide() {
-        return narrow != null;
+        return wide != null;
     }
 
     public boolean hasStopCode() {
