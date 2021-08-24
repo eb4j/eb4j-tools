@@ -104,20 +104,20 @@ public final class EBAppendix implements Callable<Integer>  {
         }
         if (catalog) {
             File outFile;
-            if (appendix.type.equals("EB")) {
+            if (appendix.getType().equals("EB")) {
                 outFile = new File(outDir, "catalog");
             } else {
                 outFile = new File(outDir, "catalogs");
             }
             createCatalogFile(outFile);
         }
-        if (appendix.subbook.size() > MAX_SUBBOOKS) {
+        if (appendix.getSubbook().size() > MAX_SUBBOOKS) {
             System.out.println("*** A number of subbook definitions are exceeded the limit. Abort...");
             return 1;
         }
-        for (SubAppendix subbook : appendix.subbook) {
+        for (SubAppendix subbook : appendix.getSubbook()) {
             File outFile;
-            if (appendix.type.equals("EB")) {
+            if (appendix.getType().equals("EB")) {
                 outFile = new File(new File(outDir, subbook.name), "appendix");
             } else {
                 File outTarget = new File(new File(outDir, subbook.name), "data");
