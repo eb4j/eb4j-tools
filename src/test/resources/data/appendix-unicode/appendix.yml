@@ -1,8 +1,5 @@
 ---
-title: 研究社 新英和和英中辞典
-target:
-  - a
-  - b
+title: '研究社 新英和和英中辞典'
 type: EPWING
 subbook:
   - name: chujiten
