@@ -152,14 +152,18 @@ public final class EBAppendix implements Callable<Integer>  {
         }
         // write narrow def
         if (subbook.hasNarrow()) {
-            if (verbose) {
-                System.err.println("Write narrow character definitions...");
-            }
             narrowPage = (int)(1 + raf.getFilePointer() / SIZE_PAGE);
             int i = subbook.narrow.getStart();
-            while (i <= subbook.narrow.getEnd()) {
+            int end = subbook.narrow.getEnd();
+            if (verbose) {
+                System.err.println("Write narrow character definitions (" + i + ", " + end + ")");
+            }
+            while (i <= end) {
                 if (subbook.narrow.containsKey(i)) {
                     String altString = subbook.narrow.getAlt(i);
+                    if (verbose) {
+                        System.err.println("  Write (" + i + ", " + altString);
+                    }
                     if (compat) {
                         byte[] altByte = altString.getBytes("EUC-JP");
                         raf.write(altByte);
@@ -207,10 +211,10 @@ public final class EBAppendix implements Callable<Integer>  {
             }
             while (i <= end) {
                 if (subbook.wide.containsKey(i)) {
-                    if (verbose) {
-                        System.err.println("  Write key " + i);
-                    }
                     String altString = subbook.wide.getAlt(i);
+                    if (verbose) {
+                        System.err.println("  Write (" + i + ", " + altString);
+                    }
                     if (compat) {
                         byte[] altByte = altString.getBytes("EUC-JP");
                         raf.write(altByte);

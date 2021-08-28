@@ -45,6 +45,9 @@ public class AltDef {
     public void mapDeserializer(Map<Object, Object> map) {
         for (Map.Entry entry: map.entrySet()) {
             int key = Integer.parseInt(String.valueOf(entry.getKey()).substring(2), 16);
+            if (entry.getValue() == null) {
+                continue;
+            }
             altMap.put(key, String.valueOf(entry.getValue()));
         }
     }
