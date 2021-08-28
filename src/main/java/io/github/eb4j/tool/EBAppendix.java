@@ -2,7 +2,6 @@ package io.github.eb4j.tool;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import org.apache.commons.text.translate.UnicodeEscaper;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -12,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 
+import io.github.eb4j.ext.UnicodeEscaper;
 import io.github.eb4j.tool.appendix.Appendix;
 import io.github.eb4j.tool.appendix.SubAppendix;
 
@@ -145,7 +145,7 @@ public final class EBAppendix implements Callable<Integer>  {
         int narrowPage = 0;
         int widePage = 0;
         int stopPage = 0;
-        UnicodeEscaper escaper = UnicodeEscaper.above(0x7e);
+        UnicodeEscaper escaper = new UnicodeEscaper();
         // fill header with null bytes
         for (int i = 0; i < SIZE_PAGE; i++) {
             raf.write('\0');
