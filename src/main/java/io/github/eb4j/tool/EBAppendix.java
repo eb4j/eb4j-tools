@@ -199,13 +199,17 @@ public final class EBAppendix implements Callable<Integer>  {
         }
         // write wide def
         if (subbook.hasWide()) {
-            if (verbose) {
-                System.err.println("Write wide character definitions...");
-            }
             widePage = 1 + (int) (raf.getFilePointer() / SIZE_PAGE);
             int i = subbook.wide.getStart();
-            while (i <= subbook.wide.getEnd()) {
+            int end = subbook.wide.getEnd();
+            if (verbose) {
+                System.err.println("Write wide character definitions: (" + i + ", " + end + ")");
+            }
+            while (i <= end) {
                 if (subbook.wide.containsKey(i)) {
+                    if (verbose) {
+                        System.err.println("  Write key " + i);
+                    }
                     String altString = subbook.wide.getAlt(i);
                     if (compat) {
                         byte[] altByte = altString.getBytes("EUC-JP");
@@ -327,8 +331,7 @@ public final class EBAppendix implements Callable<Integer>  {
         }
         if (subbook.hasNarrow()) {
             if (subbook.isEncoding("JISX0208")) {
-                for (String keyString: subbook.narrow.keySet()) {
-                    int key = Integer.parseInt(keyString.substring(2), 16);
+                for (int key: subbook.narrow.keySet()) {
                     if (key < subbook.narrow.getStart()
                             || subbook.narrow.getEnd() < key
                             || (key & 0xff) < 0x21
@@ -337,8 +340,7 @@ public final class EBAppendix implements Callable<Integer>  {
                     }
                 }
             } else {
-                for (String keyString: subbook.narrow.keySet()) {
-                    int key = Integer.parseInt(keyString.substring(2), 16);
+                for (int key: subbook.narrow.keySet()) {
                     if (key < subbook.narrow.getStart()
                             || subbook.narrow.getEnd() < key
                             || (key & 0xff) < 0x01
@@ -350,16 +352,14 @@ public final class EBAppendix implements Callable<Integer>  {
         }
         if (subbook.hasWide()) {
             if (subbook.isEncoding("JISX0208")) {
-                for (String keyString: subbook.wide.keySet()) {
-                    int key = Integer.parseInt(keyString.substring(2), 16);
+                for (int key: subbook.wide.keySet()) {
                     if (key < subbook.wide.getStart() || subbook.wide.getEnd() < key
                             || (key & 0xff) < 0x21 || 0x7f < (key & 0xff)) {
                         System.out.println("*** wide: key is out of range: " + key);
                     }
                 }
             } else {
-                for (String keyString: subbook.wide.keySet()) {
-                    int key = Integer.parseInt(keyString.substring(2), 16);
+                for (int key: subbook.wide.keySet()) {
                     if (key < subbook.wide.getStart()
                             || subbook.wide.getEnd() < key
                             || (key & 0xff) < 0x01

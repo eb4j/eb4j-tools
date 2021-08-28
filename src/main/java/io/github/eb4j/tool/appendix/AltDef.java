@@ -17,8 +17,7 @@ import java.util.Set;
 public class AltDef {
     @JsonProperty("range")
     private Range range;
-    @JsonProperty("map")
-    private Map<String, String> map = new HashMap<>();
+    private Map<Integer, String> altMap = new HashMap<>();
 
     /**
      * Getter for range.
@@ -39,13 +38,15 @@ public class AltDef {
     }
 
     /**
-     * Setter for Jackson to add map.
-     * @param k key character code
-     * @param v alternative text
+     * Deserializer of map.
      */
-    @JsonAnySetter
-    public void setRecord(String k, String v) {
-        map.put(k, v);
+    @JsonProperty("map")
+    @SuppressWarnings("unchecked")
+    public void mapDeserializer(Map<Object, Object> map) {
+        for (Map.Entry entry: map.entrySet()) {
+            int key = Integer.parseInt(String.valueOf(entry.getKey()).substring(2), 16);
+            altMap.put(key, String.valueOf(entry.getValue()));
+        }
     }
 
     /**
@@ -55,8 +56,7 @@ public class AltDef {
      */
     @JsonIgnore
     public String getAlt(int key) {
-        String keyString = "0x" + Integer.toHexString(key);
-        return map.get(keyString);
+        return altMap.get(key);
     }
 
     /**
@@ -65,11 +65,10 @@ public class AltDef {
      * @return
      */
     public boolean containsKey(int key) {
-        String keyString = "0x" + Integer.toHexString(key);
-        if (!map.containsKey(keyString)) {
+        if (!altMap.containsKey(key)) {
             return false;
         }
-        return !StringUtils.isBlank(map.get(keyString));
+        return !StringUtils.isBlank(altMap.get(key));
     }
 
     /**
@@ -77,8 +76,8 @@ public class AltDef {
      * @return
      */
     @JsonIgnore
-    public Set<String> keySet() {
-        return map.keySet();
+    public Set<Integer> keySet() {
+        return altMap.keySet();
     }
 
     /**
