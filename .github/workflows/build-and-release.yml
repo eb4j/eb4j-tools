@@ -83,46 +83,14 @@ jobs:
       with:
         name: release-files
         path: distributions
-    - name: Create Release
+
+    - name: Create release
+      uses: "marvinpinto/action-automatic-releases@latest"
       id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release v${{ steps.get_version.outputs.VERSION }}
+        title: Release v${{ steps.get_version.outputs.VERSION }}
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
         draft: false
         prerelease: false
-
-    - name: Upload Release Asset(linux)
-      id: upload-release-asset-linux
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: distributions/eb-linux-${{ steps.get_version.outputs.VERSION }}.zip
-        asset_name: eb-linux-${{ steps.get_version.outputs.VERSION }}.zip
-        asset_content_type: application/zip
-
-    - name: Upload Release Asset(win32)
-      id: upload-release-asset-win32
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: distributions/eb-win32-${{ steps.get_version.outputs.VERSION }}.zip
-        asset_name: eb-win32-${{ steps.get_version.outputs.VERSION }}.zip
-        asset_content_type: application/zip
-
-    - name: Upload Release Asset(mac)
-      id: upload-release-asset-mac
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: distributions/eb-mac-${{ steps.get_version.outputs.VERSION }}.zip
-        asset_name: eb-mac-${{ steps.get_version.outputs.VERSION }}.zip
-        asset_content_type: application/zip
+        files: |
+          distributions/*.zip
