@@ -95,7 +95,7 @@ jobs:
         prerelease: false
 
     - name: Upload Release Asset(linux)
-      id: upload-release-asset-zip
+      id: upload-release-asset-linux
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -106,7 +106,7 @@ jobs:
         asset_content_type: application/zip
 
     - name: Upload Release Asset(win32)
-      id: upload-release-asset-zip
+      id: upload-release-asset-win32
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -117,7 +117,7 @@ jobs:
         asset_content_type: application/zip
 
     - name: Upload Release Asset(mac)
-      id: upload-release-asset-zip
+      id: upload-release-asset-mac
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -126,4 +126,3 @@ jobs:
         asset_path: distributions/eb-mac-${{ steps.get_version.outputs.VERSION }}.zip
         asset_name: eb-mac-${{ steps.get_version.outputs.VERSION }}.zip
         asset_content_type: application/zip
-
