@@ -29,11 +29,10 @@ group = projectGroup
 
 repositories {
     mavenCentral()
-    mavenLocal()
 }
 
 dependencies {
-    implementation('io.github.eb4j:eb4j:2.1.12')
+    implementation('io.github.eb4j:eb4j:2.2.0')
     // for CLI
     implementation 'info.picocli:picocli:4.6.1'
     annotationProcessor 'info.picocli:picocli-codegen:4.6.1'
