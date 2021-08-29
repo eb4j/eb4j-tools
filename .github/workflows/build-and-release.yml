@@ -85,11 +85,45 @@ jobs:
         path: distributions
     - name: Create Release
       id: create_release
-      uses: softprops/action-gh-release@v1
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: Release v${{ steps.get_version.outputs.VERSION }}
+        tag_name: ${{ github.ref }}
+        release_name: Release v${{ steps.get_version.outputs.VERSION }}
         draft: false
         prerelease: false
-        discussion_category_name: Announcements
-        files: |
-          distributions/*
+
+    - name: Upload Release Asset(linux)
+      id: upload-release-asset-zip
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: distributions/eb-linux-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_name: eb-linux-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_content_type: application/zip
+
+    - name: Upload Release Asset(win32)
+      id: upload-release-asset-zip
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: distributions/eb-win32-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_name: eb-win32-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_content_type: application/zip
+
+    - name: Upload Release Asset(mac)
+      id: upload-release-asset-zip
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: distributions/eb-mac-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_name: eb-mac-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_content_type: application/zip
+
