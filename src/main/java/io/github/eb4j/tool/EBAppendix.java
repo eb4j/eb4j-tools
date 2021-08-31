@@ -5,6 +5,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import picocli.CommandLine;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -46,7 +47,7 @@ public final class EBAppendix implements Callable<Integer>  {
     String outDir = DEFAULT_APPENDIX_DIR;
 
     @CommandLine.Option(names = {"--no-catalog"}, negatable = true, description = "don't output a catalog file")
-    boolean catalog = false;
+    boolean catalog = true;
 
     @CommandLine.Option(names = {"-c", "--compat"}, description = "compatibility mode (no unicode extension)")
     boolean compat = false;
@@ -102,6 +103,10 @@ public final class EBAppendix implements Callable<Integer>  {
             System.out.println("*** Failed to read specified definition. Abort...");
             return 1;
         }
+        if (appendix.getSubbook().size() > MAX_SUBBOOKS) {
+            System.out.println("*** A number of subbook definitions are exceeded the limit. Abort...");
+            return 1;
+        }
         if (catalog) {
             File outFile;
             if (appendix.getType().equals("EB")) {
@@ -109,11 +114,9 @@ public final class EBAppendix implements Callable<Integer>  {
             } else {
                 outFile = new File(outDir, "catalogs");
             }
-            createCatalogFile(outFile);
-        }
-        if (appendix.getSubbook().size() > MAX_SUBBOOKS) {
-            System.out.println("*** A number of subbook definitions are exceeded the limit. Abort...");
-            return 1;
+            try (FileOutputStream raf = new FileOutputStream(outFile)) {
+                catalogWriter(raf, appendix);
+            }
         }
         for (SubAppendix subbook : appendix.getSubbook()) {
             File outFile;
@@ -137,9 +140,45 @@ public final class EBAppendix implements Callable<Integer>  {
         return 0;
     }
 
-    private void createCatalogFile(final File outFile) {
-        // FIXME: implement me.
-        System.err.println("A catalog(s) generation feature is not implemented yet.");
+    private void catalogWriter(final FileOutputStream fileOutputStream, final Appendix appendix) throws IOException {
+        // write number of subbooks
+        byte numSubbook = (byte) appendix.getSubbook().size();
+        fileOutputStream.write('\0');
+        fileOutputStream.write(numSubbook);
+        for (int i = 0; i < 14; i++) {
+            fileOutputStream.write('\0');
+        }
+        // write subbook names;
+        if (appendix.getType().equals("EB")) {
+            for (int i = 0; i < numSubbook; i++) {
+                fileOutputStream.write((byte)i + 1);
+                fileOutputStream.write('\0');
+                for (int j = 0; j < 30; j++) {
+                    fileOutputStream.write('\0');
+                }
+                byte[] name = appendix.getSubbook().get(i).name.getBytes(StandardCharsets.UTF_8);
+                fileOutputStream.write(name);
+                for (int j = 0; j < MAXLEN_SUBNAME - name.length; j ++) {
+                    fileOutputStream.write('\0');
+                }
+            }
+        } else {
+            for (int i = 0; i < numSubbook; i++) {
+                fileOutputStream.write((byte) i + 1);
+                fileOutputStream.write('\0');
+                for (int j = 0; j < 80; j++) {
+                    fileOutputStream.write('\0');
+                }
+                byte[] name = appendix.getSubbook().get(i).name.getBytes(StandardCharsets.UTF_8);
+                fileOutputStream.write(name);
+                for (int j = 0; j < MAXLEN_SUBNAME - name.length; j++) {
+                    fileOutputStream.write('\0');
+                }
+                for (int j = 0; j < 74; j++) {
+                    fileOutputStream.write('\0');
+                }
+            }
+        }
     }
 
     private void appendixWriter(final RandomAccessFile raf, final SubAppendix subbook) throws Exception {
