@@ -107,6 +107,27 @@ public final class EBAppendix implements Callable<Integer>  {
             System.out.println("*** A number of subbook definitions are exceeded the limit. Abort...");
             return 1;
         }
+        File outDirFile = new File(outDir);
+        if (!outDirFile.exists()) {
+            if (!new File(outDir).mkdirs()) {
+                System.out.println("*** Cannot create output directory. Abort...");
+                return 1;
+            }
+        } else {
+            if (!outDirFile.isDirectory()) {
+                System.out.println("*** Target output directory is not directory. Abort...");
+                return 1;
+            }
+            File[] list = outDirFile.listFiles();
+            if (list == null) {
+                System.out.println("*** Target output directory access error.");
+                return 1;
+            }
+            if (list.length > 0) {
+                System.out.println("*** Target output directory is not empty. Abort...");
+                return 1;
+            }
+        }
         if (catalog) {
             File outFile;
             if (appendix.getType().equals("EB")) {
