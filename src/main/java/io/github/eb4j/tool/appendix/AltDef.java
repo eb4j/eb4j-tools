@@ -1,5 +1,6 @@
 package io.github.eb4j.tool.appendix;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -63,6 +64,11 @@ public class AltDef {
         }
     }
 
+    @JsonAnyGetter
+    @JsonProperty("map")
+    public Map<String, String> getAltMap() {
+        return altMap.entrySet().stream().collect(Collectors.toMap(e -> "0x" + e.getKey(), Map.Entry::getValue));
+    }
 
     /**
      * Getter for alternative character string from key(int).
