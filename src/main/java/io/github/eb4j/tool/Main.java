@@ -10,7 +10,7 @@ import picocli.CommandLine.HelpCommand;
 @Command(name = "eb",
         description = "EPWING ebook tools",
         mixinStandardHelpOptions = true,
-        subcommands = {HelpCommand.class, EBDump.class, EBZip.class, EBInfo.class, EBAppendix.class},
+        subcommands = {HelpCommand.class, EBDump.class, EBZip.class, EBInfo.class, EBAppendix.class, EBMap.class},
         synopsisSubcommandLabel = "[dump|info|zip]",
         version = {"eb4j-tools",
                 "Version " + Main.VERSION,
