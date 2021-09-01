@@ -2,9 +2,7 @@ package io.github.eb4j.tool;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SequenceWriter;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -26,9 +24,9 @@ import io.github.eb4j.tool.appendix.SubAppendix;
 /**
  * @author Hiroshi Miura
  */
-@CommandLine.Command(name = "map2appendix", mixinStandardHelpOptions = true, description = "Generate furoku source " +
+@CommandLine.Command(name = "map", mixinStandardHelpOptions = true, description = "Generate furoku YAML definition " +
         "from EBWin map data")
-public class Map2Yaml implements Callable<Integer> {
+public class EBMap implements Callable<Integer> {
 
     private static final String EPWING_TYPE = "EPWING";
 
