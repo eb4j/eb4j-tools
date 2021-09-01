@@ -58,17 +58,17 @@ public class EBMap implements Callable<Integer> {
         return 0;
     }
 
-    private Appendix constructData(UnicodeMap unicodeMap) throws Exception {
+    protected Appendix constructData(UnicodeMap unicodeMap) throws Exception {
         AltDef narrow = generateAltDef(unicodeMap.getNarrowMap());
         AltDef wide = generateAltDef(unicodeMap.getWideMap());
-        SubAppendix subBook = new SubAppendix("name", true, "JISX0208", "0x1f090001", narrow, wide);
+        SubAppendix subBook = new SubAppendix("name", true, "JISX0208", "", narrow, wide);
         List<SubAppendix> subAppendixList = new ArrayList<>();
         subAppendixList.add(subBook);
         Appendix appendix = new Appendix("title", EPWING_TYPE, subAppendixList);
         return appendix;
     }
 
-    private AltDef generateAltDef(Map<Integer, String> map) {
+    protected AltDef generateAltDef(Map<Integer, String> map) {
         int maxRange =
                 map.keySet().stream().max(Comparator.naturalOrder()).orElseThrow();
         int minRange =
@@ -78,7 +78,7 @@ public class EBMap implements Callable<Integer> {
         return new AltDef(new Range(minRange, maxRange), targetMap);
     }
 
-    private void generateYaml(Appendix appendix) throws IOException {
+    protected void generateYaml(Appendix appendix) throws IOException {
         YAMLFactory yf = new YAMLFactory();
         ObjectMapper mapper = new ObjectMapper(yf);
         try (FileOutputStream fos = new FileOutputStream(yamlFile)) {
