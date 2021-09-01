@@ -223,7 +223,7 @@ public final class EBAppendix implements Callable<Integer>  {
                 if (subbook.narrow.containsKey(i)) {
                     String altString = subbook.narrow.getAlt(i);
                     if (verbose) {
-                        System.err.println("  Write (" + i + ", " + altString);
+                        System.err.println("  Write (" + i + ", " + altString + ")");
                     }
                     if (compat) {
                         byte[] altByte = altString.getBytes("EUC-JP");
