@@ -7,6 +7,7 @@ EPWING/Ebook access command line utilities.
 - `eb appendix`: utility to generate appendix dictionary data from YAML definition source.
 - `eb dump`: print hex data from epwing/eb dictionary/book.
 - `eb info`: print epwing/eb metadata information.
+- `eb map`: generate YAML definition for `appendix` from EBWin map format file.
 - `eb zip`: compress/decompress epwing/eb data (.ebz). 
 
 ## Description
