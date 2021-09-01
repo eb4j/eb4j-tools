@@ -12,6 +12,15 @@ public class Appendix {
     private String type;
     private List<SubAppendix> subbook = new ArrayList<>();
 
+    public Appendix() {
+    }
+
+    public Appendix(String title, String type, List<SubAppendix> subbook) {
+        this.title = title;
+        this.type = type;
+        this.subbook = subbook;
+    }
+
     @JsonGetter
     public String getTitle() {
         return title;

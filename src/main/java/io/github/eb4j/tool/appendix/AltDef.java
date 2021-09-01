@@ -1,6 +1,5 @@
 package io.github.eb4j.tool.appendix;
 
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Alternative character Mapping definition class.
@@ -17,7 +17,15 @@ import java.util.Set;
 public class AltDef {
     @JsonProperty("range")
     private Range range;
-    private Map<Integer, String> altMap = new HashMap<>();
+    private Map<String, String> altMap = new HashMap<>();
+
+    public AltDef() {
+    }
+
+    public AltDef(Range range, Map<String, String> altMap) {
+        this.range = range;
+        this.altMap = altMap;
+    }
 
     /**
      * Getter for range.
@@ -44,13 +52,17 @@ public class AltDef {
     @SuppressWarnings("unchecked")
     public void mapDeserializer(Map<Object, Object> map) {
         for (Map.Entry entry: map.entrySet()) {
-            int key = Integer.parseInt(String.valueOf(entry.getKey()).substring(2), 16);
             if (entry.getValue() == null) {
                 continue;
             }
-            altMap.put(key, String.valueOf(entry.getValue()));
+            try {
+                int key = Integer.parseInt(String.valueOf(entry.getKey()).substring(2), 16);
+                altMap.put(String.format("%04X", key), String.valueOf(entry.getValue()));
+            } catch (NumberFormatException ignore) {
+            }
         }
     }
+
 
     /**
      * Getter for alternative character string from key(int).
@@ -59,7 +71,7 @@ public class AltDef {
      */
     @JsonIgnore
     public String getAlt(int key) {
-        return altMap.get(key);
+        return altMap.get(String.format("%04X", key));
     }
 
     /**
@@ -68,10 +80,11 @@ public class AltDef {
      * @return
      */
     public boolean containsKey(int key) {
-        if (!altMap.containsKey(key)) {
+        String strKey = String.format("%04X", key);
+        if (!altMap.containsKey(strKey)) {
             return false;
         }
-        return !StringUtils.isBlank(altMap.get(key));
+        return !StringUtils.isBlank(altMap.get(strKey));
     }
 
     /**
@@ -80,7 +93,7 @@ public class AltDef {
      */
     @JsonIgnore
     public Set<Integer> keySet() {
-        return altMap.keySet();
+        return altMap.keySet().stream().map(e -> Integer.parseInt(e, 16)).collect(Collectors.toSet());
     }
 
     /**

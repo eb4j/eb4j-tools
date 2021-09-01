@@ -10,6 +10,14 @@ public class Range {
     @JsonIgnore
     public int end;
 
+    public Range() {
+    }
+
+    public Range(int start, int end) {
+        this.start = start;
+        this.end = end;
+    }
+
     @JsonGetter("start")
     public String getStart() {
         return "0x" + Integer.toHexString(start);

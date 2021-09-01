@@ -34,6 +34,7 @@ application {
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -76,6 +77,7 @@ nativeImage {
         add '-H:ReflectionConfigurationFiles=config/native-image/reflect-config.json'
         add '--initialize-at-build-time=com.fasterxml.jackson,com.fasterxml.jackson.annotation,org.slf4j,org.yaml.snakeyaml'
         add '--enable-all-security-services'
+        add '-H:+AddAllCharsets'
         // add '--initialize-at-run-time='
         // add '--report-unsupported-elements-at-runtime'
     }
