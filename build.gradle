@@ -11,6 +11,7 @@ plugins {
     id 'java'
     id 'maven'
     id 'checkstyle'
+    id 'application'
     id 'com.palantir.git-version' version "0.12.3"
     id 'org.mikeneck.graalvm-native-image' version 'v1.4.0'
 }
@@ -26,6 +27,10 @@ if (versionDetails().isCleanTag) {
 }
 
 group = projectGroup
+
+application {
+    mainClassName = 'io.github.eb4j.tool.Main'
+}
 
 repositories {
     mavenCentral()
