@@ -42,11 +42,14 @@ public class EBMapTest {
         File mapPath = new File(Objects.requireNonNull(this.getClass().getResource("/data/chimei.map"))
                 .getFile()).getAbsoluteFile();
         File outPath = new File(Files.createTempDirectory("testEBMap").toFile(), "test.yml");
+        // outPath.deleteOnExit();
         EBMap ebMap = new EBMap();
         UnicodeMap unicodeMap = new UnicodeMap(mapPath);
         Appendix appendix = ebMap.constructData(unicodeMap);
         ebMap.yamlFile = outPath;
         ebMap.generateYaml(appendix);
+        appendix = EBAppendix.getAppendix(outPath);
+        assertNotNull(appendix);
     }
 
 }

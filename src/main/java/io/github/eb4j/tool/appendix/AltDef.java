@@ -64,7 +64,6 @@ public class AltDef {
         }
     }
 
-    @JsonAnyGetter
     @JsonProperty("map")
     public Map<String, String> getAltMap() {
         return altMap.entrySet().stream().collect(Collectors.toMap(e -> "0x" + e.getKey(), Map.Entry::getValue));
