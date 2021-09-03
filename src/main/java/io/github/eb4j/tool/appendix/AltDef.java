@@ -1,6 +1,5 @@
 package io.github.eb4j.tool.appendix;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -66,7 +66,11 @@ public class AltDef {
 
     @JsonProperty("map")
     public Map<String, String> getAltMap() {
-        return altMap.entrySet().stream().collect(Collectors.toMap(e -> "0x" + e.getKey(), Map.Entry::getValue));
+        return altMap.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .collect(Collectors.toMap(e -> "0x" + e.getKey(), Map.Entry::getValue,
+                        (v1,v2) ->{throw new RuntimeException(String.format("Duplicate key: %s and %s", v1, v2));},
+                        TreeMap::new));
     }
 
     /**
