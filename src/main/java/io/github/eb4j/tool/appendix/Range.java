@@ -13,7 +13,7 @@ public class Range {
     public Range() {
     }
 
-    public Range(int start, int end) {
+    public Range(final int start, final int end) {
         this.start = start;
         this.end = end;
     }
@@ -24,7 +24,7 @@ public class Range {
     }
 
     @JsonSetter("start")
-    public void setStart(String start) {
+    public void setStart(final String start) {
         this.start = Integer.parseInt(start.substring(2), 16);
     }
 
@@ -34,7 +34,7 @@ public class Range {
     }
 
     @JsonSetter("end")
-    public void setEnd(String end) {
+    public void setEnd(final String end) {
         this.end = Integer.parseInt(end.substring(2), 16);
     }
 }

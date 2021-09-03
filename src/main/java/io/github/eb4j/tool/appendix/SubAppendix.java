@@ -29,8 +29,8 @@ public class SubAppendix {
      * @param narrow alternative glyph map for narrow fonts.
      * @param wide alternative glyph map for wide fonts.
      */
-    public SubAppendix(String name, Boolean unicode, String encoding, String stopCode, AltDef narrow,
-                       AltDef wide) {
+    public SubAppendix(final String name, final Boolean unicode, final String encoding, final String stopCode,
+                       final AltDef narrow, final AltDef wide) {
         this.name = name;
         this.unicode = unicode;
         this.encoding = encoding;
@@ -39,31 +39,61 @@ public class SubAppendix {
         this.wide = wide;
     }
 
+    /**
+     * Name of subBook.
+     */
     @JsonProperty("name")
     public String name;
 
+    /**
+     * Flag to use Unicode character.
+     */
     @JsonProperty("unicode")
     public Boolean unicode;
 
+    /**
+     * Book encoding.
+     */
     @JsonProperty("character-code")
     private String encoding;
 
+    /**
+     * Stop code.
+     */
     @JsonProperty("stop-code")
     private String stopCode;
 
+    /**
+     * alternative definitions for Narrow fonts.
+     */
     public AltDef narrow;
+    /**
+     * alternative definitions for Wide fonts.
+     */
     public AltDef wide;
 
+    /**
+     * Setter of stop code.
+     * @param stopCode in string.
+     */
     @JsonSetter
     public void setStopCode(final String stopCode) {
         this.stopCode = stopCode;
     }
 
+    /**
+     * Getter of stop code.
+     * @return byte array of stop code.
+     */
     @JsonGetter
     public String getStopCode() {
         return stopCode;
     }
 
+    /**
+     * Getter of stop code as byte array.
+     * @return byte array of stop code.
+     */
     @JsonIgnore
     public byte[] getStopCodeBytes() {
         Matcher m = PATTERN.matcher(stopCode);

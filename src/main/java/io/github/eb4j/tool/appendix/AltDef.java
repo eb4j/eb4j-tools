@@ -90,7 +90,7 @@ public class AltDef {
      * @return alternative string.
      */
     @JsonIgnore
-    public String getAlt(int key) {
+    public String getAlt(final int key) {
         return altMap.get(String.format("%04X", key));
     }
 
@@ -99,7 +99,7 @@ public class AltDef {
      * @param key to query as integer.
      * @return true if alternative glyph exist, otherwise false.
      */
-    public boolean containsKey(int key) {
+    public boolean containsKey(final int key) {
         String strKey = String.format("%04X", key);
         if (!altMap.containsKey(strKey)) {
             return false;

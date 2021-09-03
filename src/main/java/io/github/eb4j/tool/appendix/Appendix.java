@@ -15,7 +15,7 @@ public class Appendix {
     public Appendix() {
     }
 
-    public Appendix(String title, String type, List<SubAppendix> subbook) {
+    public Appendix(final String title, final String type, final List<SubAppendix> subbook) {
         this.title = title;
         this.type = type;
         this.subbook = subbook;
@@ -27,7 +27,7 @@ public class Appendix {
     }
 
     @JsonSetter
-    public void setTitle(String title) {
+    public void setTitle(final String title) {
         this.title = title;
     }
 
@@ -37,7 +37,7 @@ public class Appendix {
     }
 
     @JsonSetter
-    public void setType(String type) {
+    public void setType(final String type) {
         this.type = type;
     }
 
@@ -47,16 +47,16 @@ public class Appendix {
     }
 
     @JsonSetter
-    public void setSubbook(List<SubAppendix> subbook) {
+    public void setSubbook(final List<SubAppendix> subbook) {
         this.subbook = subbook;
     }
 
     @Override
     public String toString() {
-        return "Appendix{" +
-                "title='" + title + '\'' +
-                ", type='" + type + '\'' +
-                ", subbook=" + subbook +
-                '}';
+        return "Appendix{"
+                + "title='" + title + '\''
+                + ", type='" + type + '\''
+                + ", subbook=" + subbook
+                + '}';
     }
 }
