@@ -23,7 +23,8 @@ public class EBAppendixTest {
     @Test
     public void testEBAppendixCompat() throws Exception {
         EBAppendix ebAppendix = new EBAppendix();
-        File appendixPath = new File(Objects.requireNonNull(this.getClass().getResource("/data/appendix-compat/appendix.yml"))
+        File appendixPath = new File(Objects.requireNonNull(
+                this.getClass().getResource("/data/appendix-compat/appendix.yml"))
                 .getFile()).getAbsoluteFile();
         File outPath = Files.createTempDirectory("testEBAppendix").toFile();
         outPath.deleteOnExit();
@@ -33,7 +34,8 @@ public class EBAppendixTest {
         ebAppendix.compat = true;
         int result = ebAppendix.call();
         assertEquals(result, 0);
-        File furokuPath = new File(Objects.requireNonNull(this.getClass().getResource("/data/appendix-compat/furoku"))
+        File furokuPath = new File(Objects.requireNonNull(
+                this.getClass().getResource("/data/appendix-compat/furoku"))
                 .getFile()).getAbsoluteFile();
         assertTrue(FileUtils.contentEquals(new File(outPath, "chujiten/data/furoku"), furokuPath));
     }
@@ -45,8 +47,8 @@ public class EBAppendixTest {
     @Test
     public void testEBAppendixUnicode() throws Exception {
         EBAppendix ebAppendix = new EBAppendix();
-        File appendixPath = new File(Objects.requireNonNull(this.getClass().getResource("/data/appendix-unicode" +
-                        "/appendix.yml"))
+        File appendixPath = new File(
+                Objects.requireNonNull(this.getClass().getResource("/data/appendix-unicode/appendix.yml"))
                 .getFile()).getAbsoluteFile();
         File outPath = Files.createTempDirectory("testEBAppendix").toFile();
         outPath.deleteOnExit();
@@ -56,8 +58,8 @@ public class EBAppendixTest {
         ebAppendix.compat = false;
         int result = ebAppendix.call();
         assertEquals(result, 0);
-        File furokuPath = new File(Objects.requireNonNull(this.getClass().getResource
-         ("/data/appendix-unicode/furoku"))
+        File furokuPath = new File(Objects.requireNonNull(
+                this.getClass().getResource("/data/appendix-unicode/furoku"))
                .getFile()).getAbsoluteFile();
         assertTrue(FileUtils.contentEquals(new File(outPath, "chujiten/data/furoku"), furokuPath));
     }
