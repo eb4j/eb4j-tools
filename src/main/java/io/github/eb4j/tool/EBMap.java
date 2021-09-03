@@ -3,6 +3,7 @@ package io.github.eb4j.tool;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -79,7 +80,7 @@ public class EBMap implements Callable<Integer> {
     }
 
     protected void generateYaml(Appendix appendix) throws IOException {
-        YAMLFactory yf = new YAMLFactory();
+        YAMLFactory yf = new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
         ObjectMapper mapper = new ObjectMapper(yf);
         try (FileOutputStream fos = new FileOutputStream(yamlFile)) {
             SequenceWriter sw = mapper.writerWithDefaultPrettyPrinter().writeValues(fos);
