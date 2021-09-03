@@ -25,8 +25,8 @@ import io.github.eb4j.tool.appendix.SubAppendix;
 /**
  * @author Hiroshi Miura
  */
-@CommandLine.Command(name = "map", mixinStandardHelpOptions = true, description = "Generate furoku YAML definition " +
-        "from EBWin map data")
+@CommandLine.Command(name = "map", mixinStandardHelpOptions = true, description = "Generate furoku YAML definition "
+        + "from EBWin map data")
 public class EBMap implements Callable<Integer> {
 
     private static final String EPWING_TYPE = "EPWING";
@@ -59,7 +59,7 @@ public class EBMap implements Callable<Integer> {
         return 0;
     }
 
-    protected Appendix constructData(UnicodeMap unicodeMap) throws Exception {
+    protected Appendix constructData(final UnicodeMap unicodeMap) {
         AltDef narrow = generateAltDef(unicodeMap.getNarrowMap());
         AltDef wide = generateAltDef(unicodeMap.getWideMap());
         SubAppendix subBook = new SubAppendix("name", true, "JISX0208", "", narrow, wide);
@@ -69,7 +69,7 @@ public class EBMap implements Callable<Integer> {
         return appendix;
     }
 
-    protected AltDef generateAltDef(Map<Integer, String> map) {
+    protected AltDef generateAltDef(final Map<Integer, String> map) {
         int maxRange =
                 map.keySet().stream().max(Comparator.naturalOrder()).orElseThrow();
         int minRange =
@@ -79,7 +79,7 @@ public class EBMap implements Callable<Integer> {
         return new AltDef(new Range(minRange, maxRange), targetMap);
     }
 
-    protected void generateYaml(Appendix appendix) throws IOException {
+    protected void generateYaml(final Appendix appendix) throws IOException {
         YAMLFactory yf = new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
         ObjectMapper mapper = new ObjectMapper(yf);
         try (FileOutputStream fos = new FileOutputStream(yamlFile)) {

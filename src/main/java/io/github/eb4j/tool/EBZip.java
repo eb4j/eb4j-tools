@@ -191,8 +191,7 @@ public final class EBZip implements Callable<Integer> {
 
     /**
      * Main function for EBZip command.
-     * @param args
-     * @return
+     * @param args command line argument.
      */
     public static void main(final String... args) {
         System.exit(new CommandLine(new EBZip()).execute(args));

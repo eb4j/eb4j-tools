@@ -1,5 +1,6 @@
 package io.github.eb4j.tool.appendix;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -13,10 +14,23 @@ public class SubAppendix {
     private static final Pattern PATTERN = Pattern.compile("0x1f([0-9]{2})([0-9-a-f]{2})([0-9a-f]{2})",
             Pattern.CASE_INSENSITIVE);
 
+    /**
+     * Default constructor.
+     */
     public SubAppendix() {
     }
 
-    public SubAppendix(String name, Boolean unicode, String encoding, String stopCode, AltDef narrow, AltDef wide) {
+    /**
+     * Constructor
+     * @param name of directory.
+     * @param unicode true if yaml has unicode definition, otherwise false.
+     * @param encoding JISX0208 or ISO8859_1
+     * @param stopCode stop code of the book.
+     * @param narrow alternative glyph map for narrow fonts.
+     * @param wide alternative glyph map for wide fonts.
+     */
+    public SubAppendix(String name, Boolean unicode, String encoding, String stopCode, AltDef narrow,
+                       AltDef wide) {
         this.name = name;
         this.unicode = unicode;
         this.encoding = encoding;

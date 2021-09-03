@@ -66,7 +66,7 @@ public class EBDump implements Callable<Integer> {
 
     /**
      * Main function for EBDump command.
-     * @param args
+     * @param args command line argument
      */
     public static void main(final String... args) {
         System.exit(new CommandLine(new EBDump()).execute(args));
@@ -117,7 +117,7 @@ public class EBDump implements Callable<Integer> {
             bis.close();
         }
 
-        long page = BookInputStream.getPage(pos);
+        long page2 = BookInputStream.getPage(pos);
         long pos2 = pos + dumpsize;
         long start = pos - (pos & 0x0f);
         long end = pos2;
@@ -131,10 +131,10 @@ public class EBDump implements Callable<Integer> {
         int j, k;
         int offset, high, low;
         for (i = start; i < end; i += 16) {
-            if (pos + idx >= page * BookInputStream.PAGE_SIZE) {
-                page++;
+            if (pos + idx >= page2 * BookInputStream.PAGE_SIZE) {
+                page2++;
             }
-            buf.append(_toHexString(page)).append(':');
+            buf.append(_toHexString(page2)).append(':');
             offset = (int) (i % BookInputStream.PAGE_SIZE);
             buf.append(_toHexString(offset)).append(' ');
             k = 0;

@@ -44,7 +44,7 @@ public final class EBInfo implements Callable<Integer> {
 
     /**
      * Main function for EBInfo commmand.
-     * @param args
+     * @param args command line argument.
      */
     public static void main(final String... args) {
         System.exit(new CommandLine(new EBInfo()).execute(args));

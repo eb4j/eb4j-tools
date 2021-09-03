@@ -20,17 +20,25 @@ public class AltDef {
     private Range range;
     private Map<String, String> altMap = new HashMap<>();
 
+    /**
+     * Default constructor.
+     */
     public AltDef() {
     }
 
-    public AltDef(Range range, Map<String, String> altMap) {
+    /**
+     * Constructor.
+     * @param range range of definition.
+     * @param altMap alternative glyph map.
+     */
+    public AltDef(final Range range, final Map<String, String> altMap) {
         this.range = range;
         this.altMap = altMap;
     }
 
     /**
      * Getter for range.
-     * @return
+     * @return range of map.
      */
     @JsonGetter
     public Range getRange() {
@@ -39,19 +47,20 @@ public class AltDef {
 
     /**
      * Setter for jackson to add range.
-     * @param range
+     * @param range range of map.
      */
     @JsonSetter
-    public void setRange(Range range) {
+    public void setRange(final Range range) {
         this.range = range;
     }
 
     /**
      * Deserializer of map.
+     * @param map alternative glyph map to deserialize.
      */
     @JsonProperty("map")
     @SuppressWarnings("unchecked")
-    public void mapDeserializer(Map<Object, Object> map) {
+    public void mapDeserializer(final Map<Object, Object> map) {
         for (Map.Entry entry: map.entrySet()) {
             if (entry.getValue() == null) {
                 continue;
@@ -69,7 +78,9 @@ public class AltDef {
         return altMap.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .collect(Collectors.toMap(e -> "0x" + e.getKey(), Map.Entry::getValue,
-                        (v1,v2) ->{throw new RuntimeException(String.format("Duplicate key: %s and %s", v1, v2));},
+                        (v1, v2) -> {
+                    throw new RuntimeException(String.format("Duplicate key: %s and %s", v1, v2));
+                    },
                         TreeMap::new));
     }
 
@@ -85,8 +96,8 @@ public class AltDef {
 
     /**
      * wrapper for containsKey for the map.
-     * @param key
-     * @return
+     * @param key to query as integer.
+     * @return true if alternative glyph exist, otherwise false.
      */
     public boolean containsKey(int key) {
         String strKey = String.format("%04X", key);
@@ -98,7 +109,7 @@ public class AltDef {
 
     /**
      * Getter for key list.
-     * @return
+     * @return key set in integer.
      */
     @JsonIgnore
     public Set<Integer> keySet() {
