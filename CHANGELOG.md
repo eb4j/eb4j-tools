@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.2.5] - 2021-09-29
+
+### Changed
+- map: output YAML with sorted map keys
+- Allow building with Java16 and later
+- appendix: refactoring writer code
+
 ## [2.2.4] - 2021-09-03
 
 ### Fixed
@@ -77,7 +84,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Import from eb4j-1.0.5
 
-[Unreleased]: https://github.com/eb4j/eb4j/compare/v2.2.4...HEAD
+[Unreleased]: https://github.com/eb4j/eb4j/compare/v2.2.5...HEAD
+[2.2.5]: https://github.com/eb4j/eb4j/compare/v2.2.4...v2.2.5
 [2.2.4]: https://github.com/eb4j/eb4j/compare/v2.2.3...v2.2.4
 [2.2.3]: https://github.com/eb4j/eb4j/compare/v2.2.2...v2.2.3
 [2.2.2]: https://github.com/eb4j/eb4j/compare/v2.2.1...v2.2.2
