@@ -48,7 +48,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.1'
     // for EB4j logging backend
-    implementation 'org.slf4j:slf4j-simple:1.7.32'
+    implementation 'org.slf4j:slf4j-simple:1.7.36'
     //
     testImplementation 'commons-io:commons-io:2.11.0'
     testImplementation 'org.testng:testng:7.4.0'
