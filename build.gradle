@@ -50,7 +50,7 @@ dependencies {
     // for EB4j logging backend
     implementation 'org.slf4j:slf4j-simple:1.7.32'
     //
-    testImplementation 'commons-io:commons-io:2.7'
+    testImplementation 'commons-io:commons-io:2.11.0'
     testImplementation 'org.testng:testng:7.4.0'
 }
 test.useTestNG()
