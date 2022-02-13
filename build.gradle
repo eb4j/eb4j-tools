@@ -11,7 +11,7 @@ plugins {
     id 'java'
     id 'checkstyle'
     id 'application'
-    id 'com.palantir.git-version' version "0.12.3"
+    id 'com.palantir.git-version' version "0.13.0"
     id 'org.mikeneck.graalvm-native-image' version 'v1.4.0'
 }
 
