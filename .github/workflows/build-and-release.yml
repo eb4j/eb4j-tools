@@ -37,7 +37,7 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-    - uses: ilammy/msvc-dev-cmd@v1.9.0
+    - uses: ilammy/msvc-dev-cmd@v1.10.0
       if: startswith(matrix.os, 'windows')
     - uses: microsoft/setup-msbuild@v1
       if: startswith(matrix.os, 'windows')
