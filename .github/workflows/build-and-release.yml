@@ -50,7 +50,7 @@ jobs:
       with:
         arguments: zipExecutable
     - name: Upload java dist asset
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: release-files
         path: build/distributions/
